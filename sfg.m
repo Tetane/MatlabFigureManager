@@ -6,6 +6,7 @@ function sfg()
 % Display a GUI to easily save in different formats the figures currently opened.
 % By selecting one figure you can choose the name of the files it will be saved in.
 % By selecting multiple figures, they will be saved using the name of the figures.
+% By pressing the 'f' key you can bring to focus the selected figures.
 % If multiple selected figures have the same name they will be save as "Name(f#)". 
 
 %% Figure creation
@@ -18,7 +19,7 @@ function sfg()
                     'Name'              , 'Save Figures',...
                     'IntegerHandle'     , 'off',...
                     'HandleVisibility'  , 'off',...
-                    'WindowKeyPressFcn' , @cb_refresh);
+                    'WindowKeyPressFcn' , @cb_keyPressed);
                 
     handles = guihandles(f1);
     
@@ -33,7 +34,7 @@ function sfg()
             handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', 0);
         set(hbox, 'widths', [-1,-1,-1,-1,-1]);
         buttonsHbox = uix.HBox('Parent', vbox);
-            handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @cb_refresh, 'Tag', 'refresh_button');
+            handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @cb_keyPressed, 'Tag', 'refresh_button');
             handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @cb_save, 'Enable', 'Off');
             handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @cb_closeFig, 'Enable', 'Off', 'Tag', 'close_button');
     set(vbox, 'heights', [-1, 25, 25]);
@@ -73,7 +74,7 @@ guidata(f1, handles);
         data = guidata(gcbo);
 %         allaxes = findall(data.figures(1), 'type', 'axes');
         if length(data.list_box.Value) == 1
-            [files{1}, path] = uiputfile([data.path '*.*'], 'Save figure', [data.path data.figNames{data.list_box.Value}]);
+            [files{1}, path] = uiputfile([data.path '\' '*.*'], 'Save figure', [data.path data.figNames{data.list_box.Value}]);
             if path ~= 0
                 [~, files{1}, ~] = fileparts(files{1}); % take only the name (get rid of the extension if there is one)
             end
@@ -148,7 +149,7 @@ guidata(f1, handles);
     end
 
 %% Callback to refresh the list of figures (F5 to refresh the list)
-    function cb_refresh(~, event)
+    function cb_keyPressed(~, event)
         data = guidata(gcbo);
 %         disp(event)
         if strcmp(event.EventName, 'WindowKeyPress')
@@ -157,7 +158,7 @@ guidata(f1, handles);
             key = '';
         end
         
-        if strcmp(key, 'f5') || strcmp(event.Source.Tag, 'refresh_button') || strcmp(event.Source.Tag, 'close_button')
+        if strcmpi(key, 'f5') || strcmp(event.Source.Tag, 'refresh_button') || strcmp(event.Source.Tag, 'close_button')% || strcmpi(key, 'F')
             set(data.list_box, 'Value', 1);
             data.figures = get(0, 'children');
             if ~isempty(data.figures)
@@ -182,6 +183,11 @@ guidata(f1, handles);
             data.dispNames = dispNames_up;
             data.figNames = figNames_up;
             guidata(gcbo, data);
+        elseif strcmpi(key, 'f')
+            nfig = length(data.list_box.Value);
+            for ind2 = 1:nfig
+                figure(get(data.figures(data.list_box.Value(ind2)), 'Number'));
+            end
         end
     end
 
@@ -189,7 +195,7 @@ guidata(f1, handles);
     function cb_closeFig(~, event)
         data = guidata(gcbo);
         close(data.figures(data.list_box.Value));
-        cb_refresh(data.refresh_button, event);
+        cb_keyPressed(data.refresh_button, event);
 %         guidata(gcbo, data);
     end
 
