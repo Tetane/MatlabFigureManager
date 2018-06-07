@@ -10,6 +10,18 @@ function sfg()
 % If multiple selected figures have the same name they will be save as "Name(f#)". 
 
 %% Figure creation
+    % Create a new figure only if its not already opened
+    set(0, 'ShowHiddenHandles', 'on')
+    allFigures = get(0, 'Children');
+    for iafig = 1:length(allFigures)
+        if strcmp(allFigures(iafig).Tag, 'sfg')
+            figure(allFigures(iafig));
+            return
+        end
+    end
+    clear allFigures
+    set(0, 'ShowHiddenHandles', 'Off')
+    
     screenSize = get(0,'ScreenSize');
     f_size = [240 , 400];
     f1 = figure(    'Position'          , [ceil((screenSize(3)-f_size(1))/2), ceil((screenSize(4)-f_size(2))/2), f_size(1), f_size(2)],...
@@ -19,6 +31,7 @@ function sfg()
                     'Name'              , 'Save Figures',...
                     'IntegerHandle'     , 'off',...
                     'HandleVisibility'  , 'off',...
+                    'Tag'               , 'sfg',...
                     'WindowKeyPressFcn' , @cb_keyPressed);
                 
     handles = guihandles(f1);
