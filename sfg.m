@@ -16,11 +16,13 @@ function sfg()
     for iafig = 1:length(allFigures)
         if strcmp(allFigures(iafig).Tag, 'sfg')
             figure(allFigures(iafig));
+            set(0, 'ShowHiddenHandles', 'Off')
             return
         end
     end
-    clear allFigures
     set(0, 'ShowHiddenHandles', 'Off')
+    clear allFigures
+    
     
     screenSize = get(0,'ScreenSize');
     f_size = [240 , 400];
