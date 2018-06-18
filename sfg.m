@@ -10,7 +10,7 @@ function sfg()
 % If multiple selected figures have the same name they will be save as "Name(f#)". 
 
 %% Figure creation
-    % Create a new figure only if its not already opened
+    % If sfg is already opened, don't open a new window
     set(0, 'ShowHiddenHandles', 'on')
     allFigures = get(0, 'Children');
     for iafig = 1:length(allFigures)
@@ -23,7 +23,7 @@ function sfg()
     set(0, 'ShowHiddenHandles', 'Off')
     clear allFigures
     
-    
+    % create the window
     screenSize = get(0,'ScreenSize');
     f_size = [240 , 400];
     f1 = figure(    'Position'          , [ceil((screenSize(3)-f_size(1))/2), ceil((screenSize(4)-f_size(2))/2), f_size(1), f_size(2)],...
@@ -89,7 +89,7 @@ guidata(f1, handles);
         data = guidata(gcbo);
 %         allaxes = findall(data.figures(1), 'type', 'axes');
         if length(data.list_box.Value) == 1
-            [files{1}, path] = uiputfile([data.path '\' '*.*'], 'Save figure', [data.path data.figNames{data.list_box.Value}]);
+            [files{1}, path] = uiputfile(fullfile(data.path, '*.*'), 'Save figure', fullfile(data.path, data.figNames{data.list_box.Value}));
             if path ~= 0
                 [~, files{1}, ~] = fileparts(files{1}); % take only the name (get rid of the extension if there is one)
             end
