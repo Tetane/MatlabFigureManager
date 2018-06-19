@@ -49,7 +49,7 @@ function sfg()
             handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', 0);
         set(hbox, 'widths', [-1,-1,-1,-1,-1]);
         buttonsHbox = uix.HBox('Parent', vbox);
-            handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @cb_keyPressed, 'Tag', 'refresh_button');
+            handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @cb_refresh, 'Tag', 'refresh_button');
             handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @cb_save, 'Enable', 'Off');
             handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @cb_closeFig, 'Enable', 'Off', 'Tag', 'close_button');
     set(vbox, 'heights', [-1, 25, 25]);
@@ -163,56 +163,70 @@ guidata(f1, handles);
         guidata(gcbo, data)
     end
 
-%% Callback to refresh the list of figures (F5 to refresh the list)
+%% Callbacks for the keyboard and the buttons
     function cb_keyPressed(~, event)
         data = guidata(gcbo);
 %         disp(event)
         if strcmp(event.EventName, 'WindowKeyPress')
             key = event.Key;
-        else
-            key = '';
-        end
-        
-        if strcmpi(key, 'f5') || strcmp(event.Source.Tag, 'refresh_button') || strcmp(event.Source.Tag, 'close_button')% || strcmpi(key, 'F')
-            set(data.list_box, 'Value', 1);
-            data.figures = get(0, 'children');
-            if ~isempty(data.figures)
-                set(data.save_button, 'Enable', 'On');
-                set(data.close_button, 'Enable', 'On');
-                for ind2 = 1:length(data.figures)
-                    if strcmp(get(data.figures(ind2), 'Name'), '')
-                        dispNames_up{ind2} = ['Figure ' num2str(get(data.figures(ind2), 'Number'))];
-                        figNames_up{ind2} = ['Figure_' num2str(get(data.figures(ind2), 'Number'))];
-                    else
-                        figNames_up{ind2} = get(data.figures(ind2), 'Name');
-                        dispNames_up{ind2} = ['Figure ' num2str(get(data.figures(ind2), 'Number')) ': ' get(data.figures(ind2), 'Name')];
-                    end
-                end
-            else % Empty list of figures
-                figNames_up{1} = '';
-                dispNames_up{1} = '';
-                set(data.save_button, 'Enable', 'Off');
-                set(data.close_button, 'Enable', 'Off');
-            end
-            set(data.list_box, 'String', dispNames_up, 'Max', length(dispNames_up)+1, 'Min', 1);
-            data.dispNames = dispNames_up;
-            data.figNames = figNames_up;
-            guidata(gcbo, data);
-        elseif strcmpi(key, 'f')
-            nfig = length(data.list_box.Value);
-            for ind2 = 1:nfig
-                figure(get(data.figures(data.list_box.Value(ind2)), 'Number'));
+            if strcmpi(key, 'f5')
+                data = refresh(data);
+                guidata(gcbo, data);
+            elseif strcmpi(key, 'f')
+                focus(data);
             end
         end
     end
 
-%% Closes selected figures
-    function cb_closeFig(~, event)
+    function cb_closeFig(~, ~)
         data = guidata(gcbo);
-        close(data.figures(data.list_box.Value));
-        cb_keyPressed(data.refresh_button, event);
-%         guidata(gcbo, data);
+        data = closefig(data);
+        guidata(gcbo, data);
     end
 
+    function cb_refresh(~, ~)
+        data = guidata(gcbo);
+        data = refresh(data);
+        guidata(gcbo, data);
+    end
+
+%% Functions
+    function data = refresh(data)
+        set(data.list_box, 'Value', 1);
+        data.figures = get(0, 'children');
+        if ~isempty(data.figures)
+            set(data.save_button, 'Enable', 'On');
+            set(data.close_button, 'Enable', 'On');
+            for ind2 = 1:length(data.figures)
+                if strcmp(get(data.figures(ind2), 'Name'), '')
+                    dispNames_up{ind2} = ['Figure ' num2str(get(data.figures(ind2), 'Number'))];
+                    figNames_up{ind2} = ['Figure_' num2str(get(data.figures(ind2), 'Number'))];
+                else
+                    figNames_up{ind2} = get(data.figures(ind2), 'Name');
+                    dispNames_up{ind2} = ['Figure ' num2str(get(data.figures(ind2), 'Number')) ': ' get(data.figures(ind2), 'Name')];
+                end
+            end
+        else % Empty list of figures
+            figNames_up{1} = '';
+            dispNames_up{1} = '';
+            set(data.save_button, 'Enable', 'Off');
+            set(data.close_button, 'Enable', 'Off');
+        end
+        set(data.list_box, 'String', dispNames_up, 'Max', length(dispNames_up)+1, 'Min', 1);
+        data.dispNames = dispNames_up;
+        data.figNames = figNames_up;
+    end
+
+    function focus(data)
+        nfig = length(data.list_box.Value);
+        for ind2 = 1:nfig
+            figure(get(data.figures(data.list_box.Value(ind2)), 'Number'));
+        end
+    end
+    
+    function data = closefig(data)
+        close(data.figures(data.list_box.Value));
+        data = refresh(data);
+    end
 end
 
