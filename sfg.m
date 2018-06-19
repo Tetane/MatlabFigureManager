@@ -171,11 +171,13 @@ guidata(f1, handles);
             key = event.Key;
             if strcmpi(key, 'f5')
                 data = refresh(data);
-                guidata(gcbo, data);
             elseif strcmpi(key, 'f')
                 focus(data);
+            elseif strcmpi(key, 'delete')
+                data = closefig(data);
             end
         end
+        guidata(gcbo, data);
     end
 
     function cb_closeFig(~, ~)
