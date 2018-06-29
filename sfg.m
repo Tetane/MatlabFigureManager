@@ -194,27 +194,54 @@ guidata(f1, handles);
 
 %% Functions
     function data = refresh(data)
-        set(data.list_box, 'Value', 1);
-        data.figures = get(0, 'children');
-        if ~isempty(data.figures)
+%         set(data.list_box, 'Value', 1);
+        newFigures = get(0, 'children');
+        if ~isempty(newFigures)
+            if ~isempty(data.figures)
+                data.selected_figures = data.figures(data.list_box.Value);
+            else
+                data.selected_figures = 1;
+            end
+            
             set(data.save_button, 'Enable', 'On');
             set(data.close_button, 'Enable', 'On');
-            for ind2 = 1:length(data.figures)
-                if strcmp(get(data.figures(ind2), 'Name'), '')
-                    dispNames_up{ind2} = ['Figure ' num2str(get(data.figures(ind2), 'Number'))];
-                    figNames_up{ind2} = ['Figure_' num2str(get(data.figures(ind2), 'Number'))];
+            for ind2 = 1:length(newFigures)
+                if strcmp(get(newFigures(ind2), 'Name'), '')
+                    dispNames_up{ind2} = ['Figure ' num2str(get(newFigures(ind2), 'Number'))];
+                    figNames_up{ind2} = ['Figure_' num2str(get(newFigures(ind2), 'Number'))];
                 else
-                    figNames_up{ind2} = get(data.figures(ind2), 'Name');
-                    dispNames_up{ind2} = ['Figure ' num2str(get(data.figures(ind2), 'Number')) ': ' get(data.figures(ind2), 'Name')];
+                    figNames_up{ind2} = get(newFigures(ind2), 'Name');
+                    dispNames_up{ind2} = ['Figure ' num2str(get(newFigures(ind2), 'Number')) ': ' get(newFigures(ind2), 'Name')];
+                end
+                
+            end
+            
+            % Select in the new list the figures that were selected in the previous list
+            Nselected = 0;
+            for iNFig = 1:length(newFigures)
+                for iSFig = 1:length(data.selected_figures)
+                    if newFigures(iNFig) == data.selected_figures(iSFig)
+                        Nselected = Nselected + 1;
+                        newSelectedValues(Nselected) = iNFig;
+                    end
                 end
             end
+            
+            if Nselected ~= 0
+                set(data.list_box, 'Value', newSelectedValues);
+            else 
+                set(data.list_box, 'Value', 1);
+            end
+            
         else % Empty list of figures
+            set(data.list_box, 'Value', 1);
             figNames_up{1} = '';
             dispNames_up{1} = '';
             set(data.save_button, 'Enable', 'Off');
             set(data.close_button, 'Enable', 'Off');
         end
         set(data.list_box, 'String', dispNames_up, 'Max', length(dispNames_up)+1, 'Min', 1);
+        data.figures = newFigures;
         data.dispNames = dispNames_up;
         data.figNames = figNames_up;
     end
