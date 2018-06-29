@@ -17,6 +17,7 @@ function sfg()
         if strcmp(allFigures(iafig).Tag, 'sfg')
             figure(allFigures(iafig));
             set(0, 'ShowHiddenHandles', 'Off')
+            guidata(allFigures(iafig), refresh(guidata(allFigures(iafig))));
             return
         end
     end
