@@ -35,25 +35,29 @@ function sfg()
                     'IntegerHandle'     , 'off',...
                     'HandleVisibility'  , 'off',...
                     'Tag'               , 'sfg',...
-                    'WindowKeyPressFcn' , @cb_keyPressed);
+                    'KeyPressFcn' , @cb_keyPressed);
                 
     handles = guihandles(f1);
     
 %% GUI
     vbox = uix.VBox('Parent', f1);
-        handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox');
+        handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox', 'CallBack', @cb_listselect, 'KeyPressFcn' , @cb_keyPressed);
+        editNamesHbox = uix.HBox('Parent', vbox);
+            handles.editNames = uicontrol('Style', 'edit', 'Parent', editNamesHbox, 'HorizontalAlignment', 'left', 'KeyPressFcn', @cb_keyPressed, 'tag', 'edit');
+            handles.rename_button = uicontrol('Style', 'pushbutton', 'Parent', editNamesHbox, 'String', 'Rename', 'CallBack', @cb_renamefigs, 'KeyPressFcn' , @cb_keyPressed);
+            set(editNamesHbox, 'widths', [-1 handles.rename_button.Extent(3) + 10]);
         hbox = uix.HBox('parent', vbox);
-            handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', 1);
-            handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', 1);
-            handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', 0);
-            handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', 1);
-            handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', 0);
-        set(hbox, 'widths', [-1,-1,-1,-1,-1]);
+            handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', 1, 'KeyPressFcn' , @cb_keyPressed);
+            handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', 1, 'KeyPressFcn' , @cb_keyPressed);
+            handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', 0, 'KeyPressFcn' , @cb_keyPressed);
+            handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', 1, 'KeyPressFcn' , @cb_keyPressed);
+            handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', 0, 'KeyPressFcn' , @cb_keyPressed);
+            set(hbox, 'widths', [-1,-1,-1,-1,-1]);
         buttonsHbox = uix.HBox('Parent', vbox);
-            handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @cb_refresh, 'Tag', 'refresh_button');
-            handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @cb_save, 'Enable', 'Off');
-            handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @cb_closeFig, 'Enable', 'Off', 'Tag', 'close_button');
-    set(vbox, 'heights', [-1, 25, 25]);
+            handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @cb_refresh, 'Tag', 'refresh_button', 'KeyPressFcn' , @cb_keyPressed);
+            handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @cb_save, 'Enable', 'Off', 'KeyPressFcn' , @cb_keyPressed);
+            handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @cb_closeFig, 'Enable', 'Off', 'Tag', 'close_button', 'KeyPressFcn' , @cb_keyPressed);
+    set(vbox, 'heights', [-1, 20, 25, 25]);
     save_tip = sprintf('If multiple figures are selected, the figure''s name will be used as the file name');
     set(handles.save_button, 'TooltipString', save_tip);
     
@@ -72,9 +76,16 @@ function sfg()
                 dispNames{ind} = ['Figure ' num2str(get(figures(ind), 'Number')) ': ' get(figures(ind), 'Name')];
             end
         end
+        handles.selected_figures = figures(handles.list_box.Value);
+        if ~strcmp(get(handles.selected_figures, 'Name'), '')
+            handles.editNames.String = get(handles.selected_figures(1), 'Name');
+        else
+            handles.editNames.String = 'NoName';
+        end
     else
         figNames{1} = '';
         dispNames{1} = '';
+        handles.editNames.String = '';
     end
     set(handles.list_box, 'String', dispNames, 'Max', length(dispNames)+1, 'Min', 1);
     handles.dispNames = dispNames;
@@ -82,10 +93,12 @@ function sfg()
     handles.figures = figures;
     handles.path = '';
     
+    
 %% Put data in the figure handle
 guidata(f1, handles);
     
 %% Save CallBack function
+
     function cb_save(~, ~)
         data = guidata(gcbo);
 %         allaxes = findall(data.figures(1), 'type', 'axes');
@@ -168,14 +181,19 @@ guidata(f1, handles);
     function cb_keyPressed(~, event)
         data = guidata(gcbo);
 %         disp(event)
-        if strcmp(event.EventName, 'WindowKeyPress')
+        if strcmp(event.EventName, 'KeyPress')
             key = event.Key;
             if strcmpi(key, 'f5')
                 data = refresh(data);
-            elseif strcmpi(key, 'f')
+            elseif strcmpi(key, 'f') && ~strcmp(event.Source.Tag, 'edit') 
                 focus(data);
-            elseif strcmpi(key, 'delete')
+            elseif strcmpi(key, 'delete') && ~strcmp(event.Source.Tag, 'edit')
                 data = closefig(data);
+            elseif strcmpi(key, 'f2')
+                uicontrol(data.editNames);
+            elseif strcmpi(key, 'return') && strcmp(event.Source.Tag, 'edit')
+                pause(0.1)
+                renamefigs(data);
             end
         end
         guidata(gcbo, data);
@@ -190,6 +208,35 @@ guidata(f1, handles);
     function cb_refresh(~, ~)
         data = guidata(gcbo);
         data = refresh(data);
+        guidata(gcbo, data);
+    end
+
+    function cb_listselect(~, ~)
+        data = guidata(gcbo);
+        if ~isempty(data.figures)
+            data.selected_figures = data.figures(data.list_box.Value);
+            namesstr = '';
+            for ifig = 1:length(data.selected_figures)
+                if ifig == 1
+                    token = '';
+                else
+                    token = ';';
+                end
+                figName = get(data.selected_figures(ifig), 'Name');
+                if ~strcmp(figName,'')
+                    namesstr = strcat(namesstr, token, figName);
+                else
+                    namesstr = strcat(namesstr, token, 'NoName');
+                end
+            end
+            data.editNames.String = namesstr;
+        end
+        guidata(gcbo, data);
+    end
+
+    function cb_renamefigs(~, ~)
+        data = guidata(gcbo);
+        renamefigs(data);
         guidata(gcbo, data);
     end
 
@@ -219,19 +266,36 @@ guidata(f1, handles);
             
             % Select in the new list the figures that were selected in the previous list
             Nselected = 0;
+            namesstr = '';
             for iNFig = 1:length(newFigures)
                 for iSFig = 1:length(data.selected_figures)
                     if newFigures(iNFig) == data.selected_figures(iSFig)
                         Nselected = Nselected + 1;
                         newSelectedValues(Nselected) = iNFig;
+                        
+                        figName = get(data.selected_figures(iSFig), 'Name');
+                        
+                        if Nselected == 1
+                            token = '';
+                        else
+                            token = ';';
+                        end
+                        if ~strcmp(figName,'')
+                            namesstr = strcat(namesstr, token, figName);
+                        else
+                            namesstr = strcat(namesstr, token, 'NoName');
+                        end
+                        
                     end
                 end
             end
             
             if Nselected ~= 0
                 set(data.list_box, 'Value', newSelectedValues);
+                data.editNames.String = namesstr;
             else 
                 set(data.list_box, 'Value', 1);
+                data.editNames.String = get(newFigures(1), 'Name');
             end
             
         else % Empty list of figures
@@ -240,6 +304,7 @@ guidata(f1, handles);
             dispNames_up{1} = '';
             set(data.save_button, 'Enable', 'Off');
             set(data.close_button, 'Enable', 'Off');
+            data.editNames.String = '';
         end
         set(data.list_box, 'String', dispNames_up, 'Max', length(dispNames_up)+1, 'Min', 1);
         data.figures = newFigures;
@@ -256,6 +321,17 @@ guidata(f1, handles);
     
     function data = closefig(data)
         close(data.figures(data.list_box.Value));
+        data = refresh(data);
+    end
+
+    function data = renamefigs(data)
+        data.selected_figures = data.figures(data.list_box.Value);
+        newnames = split(data.editNames.String, ';');
+        for ifig = 1:length(data.selected_figures)
+            if ~strcmp(get(data.selected_figures(ifig), 'Name'), newnames{ifig})
+                set(data.selected_figures(ifig), 'Name', newnames{ifig});
+            end
+        end
         data = refresh(data);
     end
 end
