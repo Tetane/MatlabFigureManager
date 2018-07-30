@@ -4,10 +4,15 @@ function sfg()
 % Dependancies : Layout ToolBox.
 %
 % Display a GUI to easily save in different formats the figures currently opened.
-% By selecting one figure you can choose the name of the files it will be saved in.
-% By selecting multiple figures, they will be saved using the name of the figures.
-% By pressing the 'f' key you can bring to focus the selected figures.
-% If multiple selected figures have the same name they will be save as "Name(f#)". 
+% By selecting one figure you can choose the name of the file it will be saved in.
+% By selecting multiple figures, they will be saved using the name of the figures (or 'figure_#' if there is no name).
+% If multiple selected figures have the same name they will be save as 'Name(f#)'.
+
+% Shortcuts:
+%   - 'f5' to refresh the list
+%   - 'f' to bring selected figures to focus
+%   - 'del' to close selected figures
+%   - 'f2' to bring to focus the text field to rename the figures
 
 %% Figure creation
     % If sfg is already opened, don't open a new window
@@ -44,7 +49,7 @@ function sfg()
         handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox', 'CallBack', @cb_listselect, 'KeyPressFcn' , @cb_keyPressed);
         editNamesHbox = uix.HBox('Parent', vbox);
             handles.editNames = uicontrol('Style', 'edit', 'Parent', editNamesHbox, 'HorizontalAlignment', 'left', 'KeyPressFcn', @cb_keyPressed, 'tag', 'edit');
-            handles.rename_button = uicontrol('Style', 'pushbutton', 'Parent', editNamesHbox, 'String', 'Rename', 'CallBack', @cb_renamefigs, 'KeyPressFcn' , @cb_keyPressed);
+            handles.rename_button = uicontrol('Style', 'pushbutton', 'Parent', editNamesHbox, 'String', 'Rename', 'CallBack', @cb_renamefigs, 'KeyPressFcn' , @cb_keyPressed, 'Enable', 'Off');
             set(editNamesHbox, 'widths', [-1 handles.rename_button.Extent(3) + 10]);
         hbox = uix.HBox('parent', vbox);
             handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', 1, 'KeyPressFcn' , @cb_keyPressed);
@@ -67,6 +72,7 @@ function sfg()
     if ~isempty(figures)
         set(handles.save_button, 'Enable', 'On');
         set(handles.close_button, 'Enable', 'On');
+        set(handles.rename_button, 'Enable', 'On');
         for ind = 1:length(figures)
             if strcmp(get(figures(ind), 'Name'), '')
                 dispNames{ind} = ['Figure ' num2str(get(figures(ind), 'Number'))];
@@ -253,6 +259,7 @@ guidata(f1, handles);
             
             set(data.save_button, 'Enable', 'On');
             set(data.close_button, 'Enable', 'On');
+            set(data.rename_button, 'Enable', 'On');
             for ind2 = 1:length(newFigures)
                 if strcmp(get(newFigures(ind2), 'Name'), '')
                     dispNames_up{ind2} = ['Figure ' num2str(get(newFigures(ind2), 'Number'))];
@@ -304,6 +311,7 @@ guidata(f1, handles);
             dispNames_up{1} = '';
             set(data.save_button, 'Enable', 'Off');
             set(data.close_button, 'Enable', 'Off');
+            set(data.rename_button, 'Enable', 'Off');
             data.editNames.String = '';
         end
         set(data.list_box, 'String', dispNames_up, 'Max', length(dispNames_up)+1, 'Min', 1);
