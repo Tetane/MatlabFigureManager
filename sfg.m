@@ -192,7 +192,7 @@ guidata(f1, handles);
             if strcmpi(key, 'f5')
                 data = refresh(data);
             elseif strcmpi(key, 'f') && ~strcmp(event.Source.Tag, 'edit') 
-                focus(data);
+                data = focus(data);
             elseif strcmpi(key, 'delete') && ~strcmp(event.Source.Tag, 'edit')
                 data = closefig(data);
             elseif strcmpi(key, 'f2')
@@ -242,7 +242,7 @@ guidata(f1, handles);
 
     function cb_renamefigs(~, ~)
         data = guidata(gcbo);
-        renamefigs(data);
+        data = renamefigs(data);
         guidata(gcbo, data);
     end
 
@@ -320,11 +320,12 @@ guidata(f1, handles);
         data.figNames = figNames_up;
     end
 
-    function focus(data)
-        nfig = length(data.list_box.Value);
+    function data = focus(data)
+        nfig = length(data.selected_figures);
         for ind2 = 1:nfig
-            figure(get(data.figures(data.list_box.Value(ind2)), 'Number'));
+            figure(get(data.selected_figures(ind2), 'Number'));
         end
+        data = refresh(data);
     end
     
     function data = closefig(data)
