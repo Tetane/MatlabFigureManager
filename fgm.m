@@ -6,6 +6,7 @@ function fgm()
     %
     % Shortcuts:
     %   - 'f' to focus on selected figures
+    %   - 'f2' to focus on the text field 
     %   - 'f5' to refresh the figure list
     %   - 'del' to close selected figures
     %
@@ -144,13 +145,15 @@ function fgm()
 
     % -- Callback functions
     function onKeyPressed(~,eventdata)
+        handles = guidata(gcbo);
         switch eventdata.Key
             case 'f'
-                handles = guidata(gcbo);
                 idSelectedFigures = idSelectFigs(handles);
                 for i = 1:length(idSelectedFigures)
                     figure(idSelectedFigures(i));
                 end
+            case 'f2'
+                uicontrol(handles.editNames);
             case 'f5'
                 onRefreshButton();
             case 'backspace'
