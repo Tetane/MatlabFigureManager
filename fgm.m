@@ -174,16 +174,39 @@ function fgm()
             handles.check_png.Value*5]);
         ext = {'*.fig';'*.eps';'*.pdf';'*.svg';'*.png'};
         formats = {'fig';'epsc';'pdf';'svg';'png'};
+        ext = ext(check);
         formats = formats(check);
-        [file,path,indx] = uiputfile(ext(check),'FigManager',char(nameSelectedFigures(1)));
-        if indx
-            [~,namefile,~] = fileparts(file);
-            nameSelectedFigures{1} = namefile;
+        if length(idSelectedFigures)==1
+            [file,path] = uiputfile(ext,'FigManager',char(nameSelectedFigures(1)));
+            if all(path~=0)
+                [~,namefile,~] = fileparts(file);
+                nameSelectedFigures{1} = namefile;
+            end
+        else
+            path = uigetdir(pwd,'FigManager');
+        end
+        if all(path~=0)
+            wb = waitbar(0,'');
             for i = 1:length(idSelectedFigures)
                 for j = 1:length(formats)
-                    saveas(figure(idSelectedFigures(i)),fullfile(path,char(nameSelectedFigures(i))),char(formats(j)));
+                    waitbar((i+j)/(length(formats)+length(idSelectedFigures)),wb,['Saving : ' char(nameSelectedFigures(i))]);
+                    fullFilePath = fullfile(path,char(nameSelectedFigures(i)));
+                    extension = char(ext(j));
+                    extension = extension(2:end);
+                    if isfile([fullFilePath,extension])
+                        warning([char(nameSelectedFigures(i)) extension ' can''t be saved because this file already exists.']);
+                    else
+                        currentFig = figure(idSelectedFigures(i));
+                        if strcmp(char(formats(j)),'pdf')
+                            currentFig.PaperPositionMode = 'auto';
+                            currentFig.PaperUnits = 'points';
+                            currentFig.PaperSize = [currentFig.PaperPosition(3)+1 currentFig.PaperPosition(4)+1];
+                        end
+                        saveas(currentFig,fullFilePath,char(formats(j)));
+                    end
                 end
             end
+            close(wb);
         end
     end
     function onCloseButton(~,~)
