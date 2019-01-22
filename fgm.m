@@ -146,20 +146,22 @@ function fgm()
     % -- Callback functions
     function onKeyPressed(~,eventdata)
         handles = guidata(gcbo);
-        switch eventdata.Key
-            case 'f'
-                idSelectedFigures = idSelectFigs(handles);
-                for i = 1:length(idSelectedFigures)
-                    figure(idSelectedFigures(i));
-                end
-            case 'f2'
-                uicontrol(handles.editNames);
-            case 'f5'
-                onRefreshButton();
-            case 'backspace'
-                onCloseButton();
-            case 'return'
-                onRenameButton();
+        key = eventdata.Key;
+        tag = eventdata.Source.Tag;
+        if strcmpi(key, 'f') && ~strcmp(tag, 'edit')
+            idSelectedFigures = idSelectFigs(handles);
+            for i = 1:length(idSelectedFigures)
+                figure(idSelectedFigures(i));
+            end
+        elseif strcmpi(key, 'f2')
+            uicontrol(handles.editNames);
+        elseif strcmpi(key, 'f5')
+            onRefreshButton();
+        elseif (strcmpi(key, 'backspace') || strcmpi(key, 'delete')) && ~strcmp(tag, 'edit')
+            onCloseButton();
+        elseif strcmpi(key, 'return') && strcmp(tag, 'edit')
+            pause(0.1); % make sure handles.editNames.String is updated
+            onRenameButton();
         end
     end
     function onSaveButton(~,~)
