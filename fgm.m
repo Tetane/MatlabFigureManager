@@ -2,7 +2,7 @@ function fgm()
     % FGM - FigManager
     %
     % Launch a GUI to manage and easily save figures currently opened.
-    % Dependency : Layout ToolBox.
+    % Dependency : GUI Layout ToolBox.
     %
     % Shortcuts:
     %   - 'f' to focus on selected figures
@@ -10,9 +10,9 @@ function fgm()
     %   - 'f5' to refresh the figure list
     %   - 'del' to close selected figures
     %
-    % Copyright 2018
-    %   Create by Stephane Roussel
-    %   Updated by Olivier Leveque
+    % (c) 2018 MIT License
+    %   Created by Stephane Roussel <stephane.roussel@institutoptique.fr>
+    %   Updated by Olivier Leveque <olivier.leveque@institutoptique.fr>
     
     % -- Layout ToolBox dependency checking
     try 
@@ -55,7 +55,7 @@ function fgm()
             'HandleVisibility'  , 'off',...
             'Tag'               , 'fgm',...
             'KeyPressFcn'       , @onKeyPressed);
-        handles = guihandles(h);
+%         handles = guihandles(h);
     end
     function createInterface(h)
         handles = guidata(h);
