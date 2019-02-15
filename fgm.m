@@ -61,26 +61,26 @@ function fgm()
         handles = guidata(h);
         
         vbox = uix.VBox('Parent', h);
-        handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox', 'CallBack', @onClickList, 'KeyPressFcn' , @onKeyPressed);
+            handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox', 'CallBack', @onClickList, 'KeyPressFcn' , @onKeyPressed);
             set(handles.list_box,'Max',4,'Min',0);
-        
-        editNamesHbox = uix.HBox('Parent', vbox);
-            handles.editNames = uicontrol('Style', 'edit', 'Parent', editNamesHbox, 'HorizontalAlignment', 'left', 'KeyPressFcn', @onKeyPressed, 'tag', 'edit');
-            handles.rename_button = uicontrol('Style', 'pushbutton', 'Parent', editNamesHbox, 'String', 'Rename', 'CallBack', @onRenameButton, 'KeyPressFcn' , @onKeyPressed, 'Enable', 'Off');
+
+            editNamesHbox = uix.HBox('Parent', vbox);
+                handles.editNames = uicontrol('Style', 'edit', 'Parent', editNamesHbox, 'HorizontalAlignment', 'left', 'KeyPressFcn', @onKeyPressed, 'tag', 'edit');
+                handles.rename_button = uicontrol('Style', 'pushbutton', 'Parent', editNamesHbox, 'String', 'Rename', 'CallBack', @onRenameButton, 'KeyPressFcn' , @onKeyPressed, 'Enable', 'Off');
             set(editNamesHbox, 'widths', [-1 handles.rename_button.Extent(3) + 10]);
 
-        hbox = uix.HBox('parent', vbox);
-            handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
-            handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
-            handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', 0, 'KeyPressFcn' , @onKeyPressed);
-            handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
-            handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', 0, 'KeyPressFcn' , @onKeyPressed);
+            hbox = uix.HBox('parent', vbox);
+                handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
+                handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
+                handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', 0, 'KeyPressFcn' , @onKeyPressed);
+                handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
+                handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', 0, 'KeyPressFcn' , @onKeyPressed);
             set(hbox, 'widths', [-1,-1,-1,-1,-1]);
 
-        buttonsHbox = uix.HBox('Parent', vbox);
-            handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @onRefreshButton, 'Tag', 'refresh_button', 'KeyPressFcn' , @onKeyPressed);
-            handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @onSaveButton, 'Enable', 'Off', 'KeyPressFcn' , @onKeyPressed);
-            handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @onCloseButton, 'Enable', 'Off', 'Tag', 'close_button', 'KeyPressFcn' , @onKeyPressed);
+            buttonsHbox = uix.HBox('Parent', vbox);
+                handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @onRefreshButton, 'Tag', 'refresh_button', 'KeyPressFcn' , @onKeyPressed);
+                handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @onSaveButton, 'Enable', 'Off', 'KeyPressFcn' , @onKeyPressed);
+                handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @onCloseButton, 'Enable', 'Off', 'Tag', 'close_button', 'KeyPressFcn' , @onKeyPressed);
 
         set(vbox, 'heights', [-1, 20, 25, 25]);
 
@@ -146,24 +146,27 @@ function fgm()
     % -- Callback functions
     function onKeyPressed(~,eventdata)
         handles = guidata(gcbo);
-        key = eventdata.Key;
-        tag = eventdata.Source.Tag;
-        if strcmpi(key, 'f') && ~strcmp(tag, 'edit')
-            idSelectedFigures = idSelectFigs(handles);
-            for i = 1:length(idSelectedFigures)
-                figure(idSelectedFigures(i));
+        if strcmp(eventdata.EventName,'KeyPress')
+            key = eventdata.Key;
+            tag = eventdata.Source.Tag;
+            if strcmpi(key,'f5')
+                onRefreshButton();
+            elseif strcmpi(key, 'f') && ~strcmp(tag,'edit') 
+                idSelectedFigures = idSelectFigs(handles);
+                for i = 1:length(idSelectedFigures)
+                    figure(idSelectedFigures(i));
+                end
+            elseif (strcmpi(key,'delete') || strcmpi(key,'backspace')) && ~strcmp(tag,'edit')
+                onCloseButton();
+            elseif strcmpi(key, 'f2')
+                uicontrol(handles.editNames);
+            elseif strcmpi(key,'return') && strcmp(tag,'edit')
+                pause(0.1); % make sure handles.editNames.String is updated
+                onRenameButton();
             end
-        elseif strcmpi(key, 'f2')
-            uicontrol(handles.editNames);
-        elseif strcmpi(key, 'f5')
-            onRefreshButton();
-        elseif (strcmpi(key, 'backspace') || strcmpi(key, 'delete')) && ~strcmp(tag, 'edit')
-            onCloseButton();
-        elseif strcmpi(key, 'return') && strcmp(tag, 'edit')
-            pause(0.1); % make sure handles.editNames.String is updated
-            onRenameButton();
         end
     end
+
     function onSaveButton(~,~)
         handles = guidata(gcbo);
         idSelectedFigures = idSelectFigs(handles);
@@ -178,14 +181,19 @@ function fgm()
         formats = {'fig';'epsc';'pdf';'svg';'png'};
         ext = ext(check);
         formats = formats(check);
+        if isfield(handles,'lastpath')
+            lastpath = handles.lastpath;
+        else
+            lastpath = pwd;
+        end
         if length(idSelectedFigures)==1
-            [file,path] = uiputfile(ext,'FigManager',char(nameSelectedFigures(1)));
+            [file,path] = uiputfile(ext,'FigManager',fullfile(lastpath,char(nameSelectedFigures(1))));
             if all(path~=0)
                 [~,namefile,~] = fileparts(file);
                 nameSelectedFigures{1} = namefile;
             end
         else
-            path = uigetdir(pwd,'FigManager');
+            path = uigetdir(lastpath,'FigManager');
         end
         if all(path~=0)
             wb = waitbar(0,'');
@@ -209,6 +217,8 @@ function fgm()
                 end
             end
             close(wb);
+            handles.lastpath = path;
+            guidata(gcbo, handles);
         end
     end
     function onCloseButton(~,~)
