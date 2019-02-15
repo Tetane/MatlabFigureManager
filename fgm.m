@@ -233,7 +233,7 @@ function fgm()
         handles = guidata(gcbo);
         idSelectedFigures = idSelectFigs(handles);
         newNames = split(get(handles.editNames,'String'),';');
-        for index = 1:length(idSelectedFigures)
+        for index = 1:min(length(idSelectedFigures),length(newNames))
             set(getFigure(idSelectedFigures(index)),'Name',newNames{index});
         end
         updateInterface(gcbo);
