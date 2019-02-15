@@ -108,14 +108,17 @@ function fgm()
                 objectFig = figures(index);
                 nameFig = get(objectFig,'Name');
                 idFig = get(objectFig,'Number');
-                if isempty(nameFig)
-                    nameFig = 'Untitled';
-                    set(objectFig,'Name',nameFig);
+                if ~isempty(idFig)
+                    if isempty(nameFig)
+                        nameFig = 'Untitled';
+                        set(objectFig,'Name',nameFig);
+                    end
+                    listFig{index,1} = idFig;
+                    listFig{index,2} = nameFig;
+                    listFig{index,3} = ['Figure ' num2str(idFig) ': ' nameFig];
                 end
-                listFig{index,1} = idFig;
-                listFig{index,2} = nameFig;
-                listFig{index,3} = ['Figure ' num2str(idFig) ': ' nameFig];
             end
+            listFig = listFig(~all(cellfun(@isempty,listFig),2),:); % delete empty rows
             listFig = sortrows(listFig);
         end
         
