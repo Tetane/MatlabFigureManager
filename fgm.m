@@ -108,14 +108,17 @@ function fgm()
                 objectFig = figures(index);
                 nameFig = get(objectFig,'Name');
                 idFig = get(objectFig,'Number');
-                if isempty(nameFig)
-                    nameFig = 'Untitled';
-                    set(objectFig,'Name',nameFig);
+                if ~isempty(idFig)
+                    if isempty(nameFig)
+                        nameFig = 'Untitled';
+                        set(objectFig,'Name',nameFig);
+                    end
+                    listFig{index,1} = idFig;
+                    listFig{index,2} = nameFig;
+                    listFig{index,3} = ['Figure ' num2str(idFig) ': ' nameFig];
                 end
-                listFig{index,1} = idFig;
-                listFig{index,2} = nameFig;
-                listFig{index,3} = ['Figure ' num2str(idFig) ': ' nameFig];
             end
+            listFig = listFig(~all(cellfun(@isempty,listFig),2),:); % delete empty rows
             listFig = sortrows(listFig);
         end
         
@@ -141,6 +144,15 @@ function fgm()
             set(handles.list_box,'Value',1);
         end
         name = handles.listFigures(get(handles.list_box,'Value'),2);
+    end
+    function fig = getFigure(id)
+        figures = get(0,'Children');
+        fig = nan;
+        for num = 1:length(figures)
+            if (figures(num).Number == id)
+                fig = figures(num);
+            end
+        end
     end
 
     % -- Callback functions
@@ -206,7 +218,7 @@ function fgm()
                     if isfile([fullFilePath,extension])
                         warning([char(nameSelectedFigures(i)) extension ' can''t be saved because this file already exists.']);
                     else
-                        currentFig = figure(idSelectedFigures(i));
+                        currentFig = getFigure(idSelectedFigures(i));
                         if strcmp(char(formats(j)),'pdf')
                             currentFig.PaperPositionMode = 'auto';
                             currentFig.PaperUnits = 'points';
@@ -231,8 +243,8 @@ function fgm()
         handles = guidata(gcbo);
         idSelectedFigures = idSelectFigs(handles);
         newNames = split(get(handles.editNames,'String'),';');
-        for index = 1:length(idSelectedFigures)
-            set(figure(idSelectedFigures(index)),'Name',newNames{index});
+        for index = 1:min(length(idSelectedFigures),length(newNames))
+            set(getFigure(idSelectedFigures(index)),'Name',newNames{index});
         end
         updateInterface(gcbo);
     end
