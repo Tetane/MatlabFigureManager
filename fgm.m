@@ -142,24 +142,33 @@ function fgm()
         end
         name = handles.listFigures(get(handles.list_box,'Value'),2);
     end
+    function fig = getFigure(id)
+        figures = get(0,'Children');
+        fig = nan;
+        for num = 1:length(figures)
+            if (figures(num).Number == id)
+                fig = figures(num);
+            end
+        end
+    end
 
     % -- Callback functions
     function onKeyPressed(~,eventdata)
         handles = guidata(gcbo);
         key = eventdata.Key;
         tag = eventdata.Source.Tag;
-        if strcmpi(key, 'f') && ~strcmp(tag, 'edit')
+        if strcmpi(key,'f') && ~strcmp(tag,'edit')
             idSelectedFigures = idSelectFigs(handles);
             for i = 1:length(idSelectedFigures)
                 figure(idSelectedFigures(i));
             end
-        elseif strcmpi(key, 'f2')
+        elseif strcmpi(key,'f2')
             uicontrol(handles.editNames);
-        elseif strcmpi(key, 'f5')
+        elseif strcmpi(key,'f5')
             onRefreshButton();
-        elseif (strcmpi(key, 'backspace') || strcmpi(key, 'delete')) && ~strcmp(tag, 'edit')
+        elseif (strcmpi(key,'backspace') || strcmpi(key,'delete')) && ~strcmp(tag,'edit')
             onCloseButton();
-        elseif strcmpi(key, 'return') && strcmp(tag, 'edit')
+        elseif strcmpi(key,'return') && strcmp(tag,'edit')
             pause(0.1); % make sure handles.editNames.String is updated
             onRenameButton();
         end
@@ -198,7 +207,7 @@ function fgm()
                     if isfile([fullFilePath,extension])
                         warning([char(nameSelectedFigures(i)) extension ' can''t be saved because this file already exists.']);
                     else
-                        currentFig = figure(idSelectedFigures(i));
+                        currentFig = getFigure(idSelectedFigures(i));
                         if strcmp(char(formats(j)),'pdf')
                             currentFig.PaperPositionMode = 'auto';
                             currentFig.PaperUnits = 'points';
@@ -222,7 +231,7 @@ function fgm()
         idSelectedFigures = idSelectFigs(handles);
         newNames = split(get(handles.editNames,'String'),';');
         for index = 1:length(idSelectedFigures)
-            set(figure(idSelectedFigures(index)),'Name',newNames{index});
+            set(getFigure(idSelectedFigures(index)),'Name',newNames{index});
         end
         updateInterface(gcbo);
     end
