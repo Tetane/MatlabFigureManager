@@ -4,11 +4,17 @@ function fgm()
     % Launch a GUI to manage and easily save figures currently opened.
     % Dependency : GUI Layout ToolBox.
     %
+    % Saving figures:
+    %   - If one figure is selected the name of the file can be choosen at the moment of saving.
+    %   (Default file name will be the name of the figure)
+    %   - If Multiple figures are selected, the files names will be the names of the figures.
+    %   - If a figure has no name, the file's name will be "Figure_#" ("#" being the figure's number).
+    %
     % Shortcuts:
     %   - 'f' to focus on selected figures
     %   - 'f2' to focus on the text field 
     %   - 'f5' to refresh the figure list
-    %   - 'del' to close selected figures
+    %   - 'del' or 'backSpace' to close selected figures
     %
     % (c) 2018 MIT License
     %   Created by Stephane Roussel <stephane.roussel@institutoptique.fr>
@@ -92,8 +98,8 @@ function fgm()
     
     function dlgchoice = overwriteDialog(filename)
         screenSize = get(0,'ScreenSize');
-        windowSize = [350, 10+25+25+10];
-        d = dialog('Name', 'This file already exists', 'Position', ceil([(screenSize(3:4)-windowSize)/2, windowSize]));
+        windowSize = [380, 10+25+25+10];
+        d = dialog('Name', 'This file already exists', 'Position', ceil([(screenSize(3:4)-windowSize)/2 + [0 100], windowSize]));
         
         vbox = uix.VBox('Parent', d, 'Padding', 10, 'Spacing', 0);
             question = uicontrol('Parent', vbox, 'Style', 'text', 'String', ['Overwrite '' ' filename ' '' ?']);
@@ -139,11 +145,15 @@ function fgm()
                 idFig = get(objectFig,'Number');
                 if isempty(nameFig)
                     nameFig = 'Untitled';
-                    set(objectFig,'Name',nameFig);
+%                     set(objectFig,'Name',nameFig);
                 end
                 listFig{index,1} = idFig;
                 listFig{index,2} = nameFig;
-                listFig{index,3} = ['Figure ' num2str(idFig) ': ' nameFig];
+                if strcmp(nameFig, 'Untitled')
+                    listFig{index,3} = ['Figure ' num2str(idFig)];
+                else
+                    listFig{index,3} = ['Figure ' num2str(idFig) ': ' nameFig];
+                end
             end
             listFig = sortrows(listFig);
         end
@@ -216,6 +226,11 @@ function fgm()
         else
             lastpath = pwd;
         end
+        for i = 1:length(idSelectedFigures)
+            if strcmp(nameSelectedFigures(i), 'Untitled')
+                nameSelectedFigures{i} = ['Figure_' num2str(idSelectedFigures(i))];
+            end
+        end
         if length(idSelectedFigures)==1
             if length(formats) > 1
                 [file,path] = uiputfile('*.*','FigManager',fullfile(lastpath,char(nameSelectedFigures(1))));
@@ -231,16 +246,17 @@ function fgm()
         end
         if all(path~=0)
             wb = waitbar(0,'');
+            set(wb.Children.Title, 'Interpreter', 'none');
             dlgchoice = 'Yes';
             for i = 1:length(idSelectedFigures)
                 for j = 1:length(formats)
-                    wbInd = sub2ind([length(formats),length(idSelectedFigures)],j,i);
-                    waitbar(wbInd/(length(formats)*length(idSelectedFigures)),wb,['Saving : ' char(nameSelectedFigures(i))]);
-                    fullFilePath = fullfile(path,char(nameSelectedFigures(i)));
                     extension = char(ext(j));
                     extension = extension(2:end);
+                    wbInd = sub2ind([length(formats),length(idSelectedFigures)],j,i);
+                    fullFilePath = fullfile(path,char(nameSelectedFigures(i)));
                     
                     if ~strcmpi(dlgchoice, 'Cancel')
+                        waitbar((wbInd-1)/(length(formats)*length(idSelectedFigures)),wb,['Saving : ' nameSelectedFigures{i} extension]);
                         if isfile([fullFilePath,extension]) % if the file already exists
                             if (length(idSelectedFigures) > 1 || length(formats) > 1) && (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'No'))
                                 dlgchoice = overwriteDialog([fullFilePath,extension]);
@@ -257,6 +273,7 @@ function fgm()
                                 currentFig.PaperSize = [currentFig.PaperPosition(3)+1 currentFig.PaperPosition(4)+1];
                             end
                             saveas(currentFig,fullFilePath,char(formats(j)));
+                            waitbar((wbInd+1)/(length(formats)*length(idSelectedFigures)),wb,['Saving : ' nameSelectedFigures{i} extension]);
                         end
                     end
                 end
@@ -277,7 +294,11 @@ function fgm()
         idSelectedFigures = idSelectFigs(handles);
         newNames = split(get(handles.editNames,'String'),';');
         for index = 1:length(idSelectedFigures)
-            set(figure(idSelectedFigures(index)),'Name',newNames{index});
+            if strcmp(newNames{index}, 'Untitled')
+                set(figure(idSelectedFigures(index)),'Name','');
+            else
+                set(figure(idSelectedFigures(index)),'Name',newNames{index});
+            end
         end
         updateInterface(gcbo);
     end
