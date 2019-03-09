@@ -217,7 +217,11 @@ function fgm()
             lastpath = pwd;
         end
         if length(idSelectedFigures)==1
-            [file,path] = uiputfile('*.*','FigManager',fullfile(lastpath,char(nameSelectedFigures(1))));
+            if length(formats) > 1
+                [file,path] = uiputfile('*.*','FigManager',fullfile(lastpath,char(nameSelectedFigures(1))));
+            else
+                [file,path] = uiputfile(ext,'FigManager',fullfile(lastpath,char(nameSelectedFigures(1))));
+            end
             if all(path~=0)
                 [~,namefile,~] = fileparts(file);
                 nameSelectedFigures{1} = namefile;
@@ -245,7 +249,7 @@ function fgm()
                             dlgchoice = 'Yes'; % save if the file does not exist
                         end
 
-                        if (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'Yes to all')) && ~strcmpi(dlgchoice, 'Cancel')
+                        if (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'Yes to all'))
                             currentFig = figure(idSelectedFigures(i));
                             if strcmp(char(formats(j)),'pdf')
                                 currentFig.PaperPositionMode = 'auto';
