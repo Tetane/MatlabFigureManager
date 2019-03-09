@@ -95,7 +95,6 @@ function fgm()
         
         guidata(h,handles);
     end
-    
     function dlgchoice = overwriteDialog(filename)
         screenSize = get(0,'ScreenSize');
         windowSize = [380, 10+25+25+10];
@@ -128,6 +127,13 @@ function fgm()
         handles = guidata(h);
         
         figures = get(0,'children');
+        newIndf = 0;
+        for indf = 1: length(figures) % Remove figures without number
+            if strcmpi(get(figures(indf-newIndf), 'IntegerHandle'), 'Off')
+                figures(indf-newIndf) = [];
+                newIndf = newIndf+1;
+            end
+        end
         numberOfFigures = length(figures);
         
         if isempty(figures)
@@ -137,7 +143,6 @@ function fgm()
             listFig{1,3} = '';
         else
             state = 'On';
-            
             listFig = cell(numberOfFigures,3);
             for index = 1:numberOfFigures
                 objectFig = figures(index);
@@ -206,7 +211,6 @@ function fgm()
         end
         
     end
-
     function onSaveButton(~,~)
         handles = guidata(gcbo);
         idSelectedFigures = idSelectFigs(handles);
@@ -253,10 +257,11 @@ function fgm()
                     extension = char(ext(j));
                     extension = extension(2:end);
                     wbInd = sub2ind([length(formats),length(idSelectedFigures)],j,i);
+                    wbText = ['Saving : ' nameSelectedFigures{i} extension];
                     fullFilePath = fullfile(path,char(nameSelectedFigures(i)));
                     
                     if ~strcmpi(dlgchoice, 'Cancel')
-                        waitbar((wbInd-1)/(length(formats)*length(idSelectedFigures)),wb,['Saving : ' nameSelectedFigures{i} extension]);
+                        waitbar((wbInd-1)/(length(formats)*length(idSelectedFigures)),wb,wbText);
                         if isfile([fullFilePath,extension]) % if the file already exists
                             if (length(idSelectedFigures) > 1 || length(formats) > 1) && (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'No'))
                                 dlgchoice = overwriteDialog([fullFilePath,extension]);
@@ -273,7 +278,7 @@ function fgm()
                                 currentFig.PaperSize = [currentFig.PaperPosition(3)+1 currentFig.PaperPosition(4)+1];
                             end
                             saveas(currentFig,fullFilePath,char(formats(j)));
-                            waitbar((wbInd+1)/(length(formats)*length(idSelectedFigures)),wb,['Saving : ' nameSelectedFigures{i} extension]);
+                            waitbar((wbInd+1)/(length(formats)*length(idSelectedFigures)),wb,wbText);
                         end
                     end
                 end
