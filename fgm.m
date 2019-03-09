@@ -89,6 +89,35 @@ function fgm()
         
         guidata(h,handles);
     end
+    
+    function dlgchoice = overwriteDialog(filename)
+        screenSize = get(0,'ScreenSize');
+        windowSize = [350, 10+25+25+10];
+        d = dialog('Name', 'This file already exists', 'Position', ceil([(screenSize(3:4)-windowSize)/2, windowSize]));
+        
+        vbox = uix.VBox('Parent', d, 'Padding', 10, 'Spacing', 0);
+            question = uicontrol('Parent', vbox, 'Style', 'text', 'String', ['Overwrite '' ' filename ' '' ?']);
+            hbox = uix.HBox('Parent', vbox);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes','Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes to all','Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No','Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No to all','Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Cancel','Callback', @diagCallback);
+            set(vbox, 'Heights', [25 25]);
+            
+        if question.Extent(3) > windowSize(1)
+            set(d, 'Position', ceil([(screenSize(3:4)-[question.Extent(3) + 20, windowSize(2)])/2, [question.Extent(3) + 20, windowSize(2)]]))
+        end
+        
+        dlgchoice = 'Cancel'; % Default value
+        uiwait();    
+        function diagCallback(hObject, ~)
+            dlgchoice = get(hObject, 'String');
+            uiresume();
+            delete(gcf)
+        end
+        
+    end
     function updateInterface(h)
         handles = guidata(h);
         
@@ -188,7 +217,7 @@ function fgm()
             lastpath = pwd;
         end
         if length(idSelectedFigures)==1
-            [file,path] = uiputfile(ext,'FigManager',fullfile(lastpath,char(nameSelectedFigures(1))));
+            [file,path] = uiputfile('*.*','FigManager',fullfile(lastpath,char(nameSelectedFigures(1))));
             if all(path~=0)
                 [~,namefile,~] = fileparts(file);
                 nameSelectedFigures{1} = namefile;
@@ -198,22 +227,33 @@ function fgm()
         end
         if all(path~=0)
             wb = waitbar(0,'');
+            dlgchoice = 'Yes';
             for i = 1:length(idSelectedFigures)
                 for j = 1:length(formats)
-                    waitbar((i+j)/(length(formats)+length(idSelectedFigures)),wb,['Saving : ' char(nameSelectedFigures(i))]);
+                    wbInd = sub2ind([length(formats),length(idSelectedFigures)],j,i);
+                    waitbar(wbInd/(length(formats)*length(idSelectedFigures)),wb,['Saving : ' char(nameSelectedFigures(i))]);
                     fullFilePath = fullfile(path,char(nameSelectedFigures(i)));
                     extension = char(ext(j));
                     extension = extension(2:end);
-                    if isfile([fullFilePath,extension])
-                        warning([char(nameSelectedFigures(i)) extension ' can''t be saved because this file already exists.']);
-                    else
-                        currentFig = figure(idSelectedFigures(i));
-                        if strcmp(char(formats(j)),'pdf')
-                            currentFig.PaperPositionMode = 'auto';
-                            currentFig.PaperUnits = 'points';
-                            currentFig.PaperSize = [currentFig.PaperPosition(3)+1 currentFig.PaperPosition(4)+1];
+                    
+                    if ~strcmpi(dlgchoice, 'Cancel')
+                        if isfile([fullFilePath,extension]) % if the file already exists
+                            if (length(idSelectedFigures) > 1 || length(formats) > 1) && (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'No'))
+                                dlgchoice = overwriteDialog([fullFilePath,extension]);
+                            end
+                        else
+                            dlgchoice = 'Yes'; % save if the file does not exist
                         end
-                        saveas(currentFig,fullFilePath,char(formats(j)));
+
+                        if (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'Yes to all')) && ~strcmpi(dlgchoice, 'Cancel')
+                            currentFig = figure(idSelectedFigures(i));
+                            if strcmp(char(formats(j)),'pdf')
+                                currentFig.PaperPositionMode = 'auto';
+                                currentFig.PaperUnits = 'points';
+                                currentFig.PaperSize = [currentFig.PaperPosition(3)+1 currentFig.PaperPosition(4)+1];
+                            end
+                            saveas(currentFig,fullFilePath,char(formats(j)));
+                        end
                     end
                 end
             end
