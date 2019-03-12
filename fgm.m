@@ -263,14 +263,15 @@ function fgm()
                     if ~strcmpi(dlgchoice, 'Cancel')
                         waitbar((wbInd-1)/(length(formats)*length(idSelectedFigures)),wb,wbText);
                         if isfile([fullFilePath,extension]) % if the file already exists
+                            fileAlreadyExist = true;
                             if (length(idSelectedFigures) > 1 || length(formats) > 1) && (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'No'))
                                 dlgchoice = overwriteDialog([fullFilePath,extension]);
                             end
                         else
-                            dlgchoice = 'Yes'; % save if the file does not exist
+                            fileAlreadyExist = false; % save if the file does not exist
                         end
 
-                        if (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'Yes to all'))
+                        if (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'Yes to all')) || ~fileAlreadyExist
                             currentFig = figure(idSelectedFigures(i));
                             if strcmp(char(formats(j)),'pdf')
                                 currentFig.PaperPositionMode = 'auto';
