@@ -93,6 +93,14 @@ function fgm()
         save_tip = sprintf('If multiple figures are selected, the figure''s name will be used as the file name');
         set(handles.save_button,'TooltipString',save_tip);
         
+        menu_listbox = uicontextmenu;
+        uimenu(menu_listbox, 'Text', 'Save');
+        uimenu(menu_listbox, 'Text', 'Close (del)');
+        uimenu(menu_listbox, 'Text', 'Focus (f)');
+        uimenu(menu_listbox, 'Text', 'Rename (f2)');
+        
+        set(handles.list_box, 'UiContextMenu', menu_listbox);
+        
         guidata(h,handles);
     end
     function dlgchoice = overwriteDialog(filename)
@@ -325,7 +333,7 @@ function fgm()
             else
                 chk = [];
                 figure(idSelectFigs(handles));
-                uicontrol(handles.editNames);
+%                 uicontrol(handles.editNames);
             end
         end
     end
