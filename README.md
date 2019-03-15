@@ -5,3 +5,19 @@ The current supported formats are: .fig, .eps, .pdf, .svg, .png. (Other file for
 
 Dependency:
 * [GUI Layout Toolbox](https://mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox)
+
+## Installation
+To install FigManager, use these following lines in your MATLAB Command Window.
+```
+unzip(websave(userpath+"\FigManager",'https://github.com/oleveque/FigManager/archive/master.zip'),userpath)
+addpath(genpath(userpath+"\FigManager"));
+fgm;
+```
+
+To launch automatically FigManager when MATLAB starts, use these following lines in your MATLAB Command Window.
+```
+msg = "addpath(genpath('"+userpath+"\FigManager'));fgm;";
+id = fopen('startup.m','a');
+fwrite(id,msg);
+fclose(id);
+```
