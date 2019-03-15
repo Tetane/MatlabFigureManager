@@ -93,11 +93,11 @@ function fgm()
         save_tip = sprintf('If multiple figures are selected, the figure''s name will be used as the file name');
         set(handles.save_button,'TooltipString',save_tip);
         
-        menu_listbox = uicontextmenu;
-        uimenu(menu_listbox, 'Text', 'Save');
-        uimenu(menu_listbox, 'Text', 'Close (del)');
-        uimenu(menu_listbox, 'Text', 'Focus (f)');
-        uimenu(menu_listbox, 'Text', 'Rename (f2)');
+        menu_listbox = uicontextmenu('Parent', h);
+        handles.context_menu.save_button = uimenu(menu_listbox, 'Text', 'Save', 'CallBack', @onSaveButton, 'Enable', 'Off');
+        handles.context_menu.close_button = uimenu(menu_listbox, 'Text', 'Close (del)', 'CallBack', @onCloseButton, 'Enable', 'Off');
+        handles.context_menu.focus_button = uimenu(menu_listbox, 'Text', 'Focus (f)', 'Enable', 'Off');
+        handles.context_menu.rename_button = uimenu(menu_listbox, 'Text', 'Rename (f2)', 'Enable', 'Off');
         
         set(handles.list_box, 'UiContextMenu', menu_listbox);
         
@@ -175,6 +175,8 @@ function fgm()
         set(handles.save_button,'Enable',state);
         set(handles.close_button,'Enable',state);
         set(handles.rename_button,'Enable',state);
+        set(handles.context_menu.save_button ,'Enable',state);
+        set(handles.context_menu.close_button ,'Enable',state);
         
         set(handles.list_box,'String',listFig(:,3));
         
