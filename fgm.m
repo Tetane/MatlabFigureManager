@@ -94,10 +94,10 @@ function fgm()
         set(handles.save_button,'TooltipString',save_tip);
         
         menu_listbox = uicontextmenu('Parent', h);
-        handles.context_menu.save_button = uimenu(menu_listbox, 'Text', 'Save', 'CallBack', @onSaveButton, 'Enable', 'Off');
-        handles.context_menu.close_button = uimenu(menu_listbox, 'Text', 'Close (del)', 'CallBack', @onCloseButton, 'Enable', 'Off');
-        handles.context_menu.focus_button = uimenu(menu_listbox, 'Text', 'Focus (f)', 'Enable', 'Off');
-        handles.context_menu.rename_button = uimenu(menu_listbox, 'Text', 'Rename (f2)', 'Enable', 'Off');
+        handles.context_menu.save_button = uimenu(menu_listbox, 'Text', 'Save (Ctrl+S)', 'CallBack', @onSaveButton, 'Enable', 'Off');
+        handles.context_menu.close_button = uimenu(menu_listbox, 'Text', 'Close (Del)', 'CallBack', @onCloseButton, 'Enable', 'Off');
+        handles.context_menu.focus_button = uimenu(menu_listbox, 'Text', 'Focus (F)', 'CallBack', @onFocusFigure,'Enable', 'Off');
+        handles.context_menu.rename_button = uimenu(menu_listbox, 'Text', 'Rename (F2)','CallBack', @onFocusRename, 'Enable', 'Off');
         
         set(handles.list_box, 'UiContextMenu', menu_listbox);
         
@@ -177,6 +177,8 @@ function fgm()
         set(handles.rename_button,'Enable',state);
         set(handles.context_menu.save_button ,'Enable',state);
         set(handles.context_menu.close_button ,'Enable',state);
+        set(handles.context_menu.focus_button, 'Enable',state);
+        set(handles.context_menu.rename_button, 'Enable',state);
         
         set(handles.list_box,'String',listFig(:,3));
         
@@ -209,24 +211,22 @@ function fgm()
 
     % -- Callback functions
     function onKeyPressed(~,eventdata)
-        handles = guidata(gcbo);
         if strcmp(eventdata.EventName,'KeyPress')
             key = eventdata.Key;
             tag = eventdata.Source.Tag;
             if strcmpi(key,'f5')
                 onRefreshButton();
             elseif strcmpi(key, 'f') && ~strcmp(tag,'edit') 
-                idSelectedFigures = idSelectFigs(handles);
-                for i = 1:length(idSelectedFigures)
-                    figure(idSelectedFigures(i));
-                end
+                onFocusFigure();
             elseif (strcmpi(key,'delete') || strcmpi(key,'backspace')) && ~strcmp(tag,'edit')
                 onCloseButton();
             elseif strcmpi(key, 'f2')
-                uicontrol(handles.editNames);
+                onFocusRename();
             elseif strcmpi(key,'return') && strcmp(tag,'edit')
                 pause(0.1); % make sure handles.editNames.String is updated
                 onRenameButton();
+            elseif length(eventdata.Modifier) == 1 && strcmpi(eventdata.Modifier{1}, 'control') && strcmpi(eventdata.Key,'s')
+                onSaveButton();
             end
         end
     end
@@ -347,5 +347,16 @@ function fgm()
 %                 uicontrol(handles.editNames);
             end
         end
+    end
+    function onFocusFigure(~,~)
+        handles = guidata(gcbo);
+        idSelectedFigures = idSelectFigs(handles);
+        for i = 1:length(idSelectedFigures)
+            figure(idSelectedFigures(i));
+        end
+    end
+    function onFocusRename(~,~)
+        handles = guidata(gcbo);
+        uicontrol(handles.editNames);
     end
 end
