@@ -30,8 +30,9 @@ function fgm()
     
     % -- Main script
     if ~isFigManagerExist()
+        data = loadData();
         h = createWindow();
-        createInterface(h);
+        createInterface(h, data);
         updateInterface(h);
     end
     
@@ -60,10 +61,34 @@ function fgm()
             'IntegerHandle'     , 'off',...
             'HandleVisibility'  , 'off',...
             'Tag'               , 'fgm',...
-            'KeyPressFcn'       , @onKeyPressed);
+            'KeyPressFcn'       , @onKeyPressed,...
+            'CloseRequestFcn'   , @onCloseFgm);
 %         handles = guihandles(h);
     end
-    function createInterface(h)
+    function data = loadData()
+        mainFilePath = mfilename('fullpath');
+        pathParts = strsplit(mainFilePath, filesep);
+        data.fgmPath = strjoin(pathParts(1:end-1), filesep);
+        data.dataFilePath = [data.fgmPath filesep 'fgmdata.mat'];
+        if isfile(data.dataFilePath)
+            dataFileExist = true;
+            try
+                load(data.dataFilePath, 'selectedFormats', 'lastpath');
+                data.selectedFormats = selectedFormats;
+                data.lastpath = lastpath;
+            catch
+                delete(handles.dataFilePath);
+                dataFileExist = false;
+            end
+        else
+            dataFileExist = false;
+        end
+        if ~dataFileExist
+            data.selectedFormats = [1,0,0,0,0];
+            data.lastpath = cd;
+        end
+    end
+    function createInterface(h, data)
         handles = guidata(h);
         
         vbox = uix.VBox('Parent', h);
@@ -76,11 +101,11 @@ function fgm()
             set(editNamesHbox, 'widths', [-1 handles.rename_button.Extent(3) + 10]);
 
             hbox = uix.HBox('parent', vbox);
-                handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
-                handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
-                handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', 0, 'KeyPressFcn' , @onKeyPressed);
-                handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', 1, 'KeyPressFcn' , @onKeyPressed);
-                handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', 0, 'KeyPressFcn' , @onKeyPressed);
+                handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', data.selectedFormats(1), 'KeyPressFcn' , @onKeyPressed);
+                handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', data.selectedFormats(2), 'KeyPressFcn' , @onKeyPressed);
+                handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', data.selectedFormats(3), 'KeyPressFcn' , @onKeyPressed);
+                handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', data.selectedFormats(4), 'KeyPressFcn' , @onKeyPressed);
+                handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', data.selectedFormats(5), 'KeyPressFcn' , @onKeyPressed);
             set(hbox, 'widths', [-1,-1,-1,-1,-1]);
 
             buttonsHbox = uix.HBox('Parent', vbox);
@@ -101,6 +126,8 @@ function fgm()
         
         set(handles.list_box, 'UiContextMenu', menu_listbox);
         
+        handles.lastpath = data.lastpath;
+        handles.dataFilePath = data.dataFilePath;
         guidata(h,handles);
     end
     function dlgchoice = overwriteDialog(filename)
@@ -244,6 +271,7 @@ function fgm()
         formats = {'fig';'epsc';'pdf';'svg';'png'};
         ext = ext(check);
         formats = formats(check);
+%         handles.selectedFormats = formats;
         if isfield(handles,'lastpath')
             lastpath = handles.lastpath;
         else
@@ -358,5 +386,20 @@ function fgm()
     function onFocusRename(~,~)
         handles = guidata(gcbo);
         uicontrol(handles.editNames);
+    end
+    function onCloseFgm(~,~)
+        try
+        handles = guidata(gcbo);
+        selectedFormats =  [    handles.check_fig.Value,...
+                                handles.check_eps.Value,...
+                                handles.check_pdf.Value,...
+                                handles.check_svg.Value,...
+                                handles.check_png.Value];
+        lastpath = handles.lastpath;
+        save(handles.dataFilePath, 'selectedFormats', 'lastpath');
+        catch
+            delete(gcbo);
+        end
+        delete(gcbo);
     end
 end
