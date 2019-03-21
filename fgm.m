@@ -1,5 +1,5 @@
 function fgm()
-    % FGM - FigManager
+    % FGM - MatlabFigureManager
     %
     % Launch a GUI to manage and easily save figures currently opened.
     % Dependency : GUI Layout ToolBox.
@@ -37,14 +37,14 @@ function fgm()
     end
     
     % -- Helper subfunctions
-    function isexist = isFigManagerExist()
+    function fgmExists = isFigManagerExist()
         set(0,'ShowHiddenHandles','On');
         allFigures = get(0,'Children');
-        isexist = 0;
+        fgmExists = 0;
         for index = 1:length(allFigures)
             if strcmp(get(allFigures(index),'Tag'),'fgm')
                 figure(allFigures(index));
-                isexist = 1;
+                fgmExists = 1;
             end
         end
         set(0,'ShowHiddenHandles','Off');
@@ -92,32 +92,12 @@ function fgm()
         handles = guidata(h);
         
         vbox = uix.VBox('Parent', h);
-            handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox', 'CallBack', @onClickList, 'KeyPressFcn' , @onKeyPressed);
-            set(handles.list_box,'Max',4,'Min',0);
-
-            editNamesHbox = uix.HBox('Parent', vbox);
-                handles.editNames = uicontrol('Style', 'edit', 'Parent', editNamesHbox, 'HorizontalAlignment', 'left', 'KeyPressFcn', @onKeyPressed, 'tag', 'edit');
-                handles.rename_button = uicontrol('Style', 'pushbutton', 'Parent', editNamesHbox, 'String', 'Rename', 'CallBack', @onRenameButton, 'KeyPressFcn' , @onKeyPressed, 'Enable', 'Off');
-            set(editNamesHbox, 'widths', [-1 handles.rename_button.Extent(3) + 10]);
-
-            hbox = uix.HBox('parent', vbox);
-                handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', data.selectedFormats(1), 'KeyPressFcn' , @onKeyPressed);
-                handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', data.selectedFormats(2), 'KeyPressFcn' , @onKeyPressed);
-                handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', data.selectedFormats(3), 'KeyPressFcn' , @onKeyPressed);
-                handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', data.selectedFormats(4), 'KeyPressFcn' , @onKeyPressed);
-                handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', data.selectedFormats(5), 'KeyPressFcn' , @onKeyPressed);
-            set(hbox, 'widths', [-1,-1,-1,-1,-1]);
-
-            buttonsHbox = uix.HBox('Parent', vbox);
-                handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @onRefreshButton, 'Tag', 'refresh_button', 'KeyPressFcn' , @onKeyPressed);
-                handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @onSaveButton, 'Enable', 'Off', 'KeyPressFcn' , @onKeyPressed);
-                handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @onCloseButton, 'Enable', 'Off', 'Tag', 'close_button', 'KeyPressFcn' , @onKeyPressed);
-
-        set(vbox, 'heights', [-1, 20, 25, 25]);
-
-        save_tip = sprintf('If multiple figures are selected, the figure''s name will be used as the file name');
-        set(handles.save_button,'TooltipString',save_tip);
         
+        % Fig list section
+        handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox', 'CallBack', @onClickList, 'KeyPressFcn' , @onKeyPressed);
+        set(handles.list_box,'Max',4,'Min',0);
+        
+        % Fig list context menu
         menu_listbox = uicontextmenu('Parent', h);
         handles.context_menu.save_button = uimenu(menu_listbox, 'Text', 'Save (Ctrl+S)', 'CallBack', @onSaveButton, 'Enable', 'Off');
         handles.context_menu.close_button = uimenu(menu_listbox, 'Text', 'Close (Del)', 'CallBack', @onCloseButton, 'Enable', 'Off');
@@ -125,6 +105,30 @@ function fgm()
         handles.context_menu.rename_button = uimenu(menu_listbox, 'Text', 'Rename (F2)','CallBack', @onFocusRename, 'Enable', 'Off');
         
         set(handles.list_box, 'UiContextMenu', menu_listbox);
+        
+        % Rename section
+        editNamesHbox = uix.HBox('Parent', vbox);
+        handles.editNames = uicontrol('Style', 'edit', 'Parent', editNamesHbox, 'HorizontalAlignment', 'left', 'KeyPressFcn', @onKeyPressed, 'tag', 'edit');
+        handles.rename_button = uicontrol('Style', 'pushbutton', 'Parent', editNamesHbox, 'String', 'Rename', 'CallBack', @onRenameButton, 'KeyPressFcn' , @onKeyPressed, 'Enable', 'Off');
+        set(editNamesHbox, 'widths', [-1 handles.rename_button.Extent(3) + 10]);
+
+        % Fig extensions section
+        hbox = uix.HBox('parent', vbox);
+                handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', data.selectedFormats(1), 'KeyPressFcn' , @onKeyPressed);
+                handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', data.selectedFormats(2), 'KeyPressFcn' , @onKeyPressed);
+                handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', data.selectedFormats(3), 'KeyPressFcn' , @onKeyPressed);
+                handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', data.selectedFormats(4), 'KeyPressFcn' , @onKeyPressed);
+                handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', data.selectedFormats(5), 'KeyPressFcn' , @onKeyPressed);
+        set(hbox, 'widths', [-1,-1,-1,-1,-1]);
+
+        % Buttons section
+        buttonsHbox = uix.HBox('Parent', vbox);
+        handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @onRefreshButton, 'Tag', 'refresh_button', 'KeyPressFcn' , @onKeyPressed);
+        handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @onSaveButton, 'Enable', 'Off', 'KeyPressFcn' , @onKeyPressed);
+        set(handles.save_button,'TooltipString',sprintf('If multiple figures are selected, the figure''s name will be used as the file name'));
+        handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @onCloseButton, 'Enable', 'Off', 'Tag', 'close_button', 'KeyPressFcn' , @onKeyPressed);
+
+        set(vbox, 'heights', [-1, 20, 25, 25]);
         
         handles.lastpath = data.lastpath;
         handles.dataFilePath = data.dataFilePath;
@@ -138,11 +142,11 @@ function fgm()
         vbox = uix.VBox('Parent', d, 'Padding', 10, 'Spacing', 0);
             question = uicontrol('Parent', vbox, 'Style', 'text', 'String', ['Overwrite '' ' filename ' '' ?']);
             hbox = uix.HBox('Parent', vbox);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes','Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes to all','Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No','Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No to all','Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Cancel','Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes', 'Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes to all', 'Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No', 'Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No to all', 'Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Cancel', 'Callback', @diagCallback);
             set(vbox, 'Heights', [25 25]);
             
         if question.Extent(3) > windowSize(1)
@@ -154,7 +158,7 @@ function fgm()
         function diagCallback(hObject, ~)
             dlgchoice = get(hObject, 'String');
             uiresume();
-            delete(gcf)
+            delete(gcf);
         end
         
     end
@@ -163,7 +167,7 @@ function fgm()
         
         figures = get(0,'children');
         newIndf = 0;
-        for indf = 1: length(figures) % Remove figures without number
+        for indf = 1:length(figures) % Remove figures without number
             if strcmpi(get(figures(indf-newIndf), 'IntegerHandle'), 'Off')
                 figures(indf-newIndf) = [];
                 newIndf = newIndf+1;
