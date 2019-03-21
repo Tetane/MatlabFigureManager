@@ -194,6 +194,19 @@ function fgm()
                 else
                     listFig{index,3} = ['Figure ' num2str(idFig) ': ' nameFig];
                 end
+%                 createMenu = true;
+%                 figChildren = get(objectFig, 'Children');
+%                 for i = 1:length(figChildren)
+%                     if isa(figChildren(i), 'matlab.ui.container.Menu')
+%                         if strcmp(get(figChildren(i), 'Text'), 'Fgm')
+%                             createMenu = false;
+%                             break;
+%                         end
+%                     end
+%                 end
+%                 if createMenu && ~strcmp(get(objectFig, 'MenuBar'), 'none')
+%                     uimenu(objectFig, 'Text', 'Fgm');
+%                 end
             end
             listFig = listFig(~all(cellfun(@isempty,listFig),2),:); % delete empty rows
             listFig = sortrows(listFig);
