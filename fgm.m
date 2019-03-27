@@ -213,7 +213,8 @@ function fgm()
 %                 end
             end
             listFig = listFig(~all(cellfun(@isempty,listFig),2),:); % delete empty rows
-            listFig = sortrows(listFig);
+            [listFig, sortedxIndexes] = sortrows(listFig);
+            handles.figures = figures(sortedxIndexes);
         end
         
         set(handles.save_button,'Enable',state);
@@ -336,7 +337,7 @@ function fgm()
                         end
 
                         if (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'Yes to all')) || ~fileAlreadyExist
-                            currentFig = figure(idSelectedFigures(i));
+                            currentFig = handles.figures(idSelectedFigures(i));
                             if strcmp(char(formats(j)),'pdf')
                                 currentFig.PaperPositionMode = 'auto';
                                 currentFig.PaperUnits = 'points';
