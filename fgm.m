@@ -30,7 +30,7 @@ function fgm()
     
     % -- Main script
     if ~isFigManagerExist()
-        data = loadData();
+        data = loadBackup();
         h = createWindow();
         createInterface(h, data);
         updateInterface(h);
@@ -65,28 +65,16 @@ function fgm()
             'CloseRequestFcn'   , @onCloseFgm);
 %         handles = guihandles(h);
     end
-    function data = loadData()
-        mainFilePath = mfilename('fullpath');
-        pathParts = strsplit(mainFilePath, filesep);
-        data.fgmPath = strjoin(pathParts(1:end-1), filesep);
-        data.dataFilePath = [data.fgmPath filesep 'fgmdata.mat'];
-        if isfile(data.dataFilePath)
-            dataFileExist = true;
-            try
-                load(data.dataFilePath, 'selectedFormats', 'lastpath');
-                data.selectedFormats = selectedFormats;
-                data.lastpath = lastpath;
-            catch
-                delete(handles.dataFilePath);
-                dataFileExist = false;
-            end
-        else
-            dataFileExist = false;
+    function data = loadBackup()
+        data.dataFilePath = [fgmRoot(),filesep,'backup.mat'];
+        try
+            load(data.dataFilePath, 'selectedFormats', 'lastpath');
+        catch
+            selectedFormats = [1,1,0,1,0];
+            lastpath = cd; % current folder
         end
-        if ~dataFileExist
-            data.selectedFormats = [1,0,0,0,0];
-            data.lastpath = cd;
-        end
+        data.selectedFormats = selectedFormats;
+        data.lastpath = lastpath;
     end
     function createInterface(h, data)
         handles = guidata(h);
@@ -407,16 +395,17 @@ function fgm()
     end
     function onCloseFgm(~,~)
         try
-        handles = guidata(gcbo);
-        selectedFormats =  [    handles.check_fig.Value,...
-                                handles.check_eps.Value,...
-                                handles.check_pdf.Value,...
-                                handles.check_svg.Value,...
-                                handles.check_png.Value];
-        lastpath = handles.lastpath;
-        save(handles.dataFilePath, 'selectedFormats', 'lastpath');
+            handles = guidata(gcbo);
+            selectedFormats =  [...
+                    handles.check_fig.Value,...
+                    handles.check_eps.Value,...
+                    handles.check_pdf.Value,...
+                    handles.check_svg.Value,...
+                    handles.check_png.Value];
+            lastpath = handles.lastpath;
+            save(handles.dataFilePath, 'selectedFormats', 'lastpath');
         catch
-            delete(gcbo);
+            warning('Sorry, we can''t save your GUI settings...');
         end
         delete(gcbo);
     end
