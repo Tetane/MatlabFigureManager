@@ -164,7 +164,9 @@ function fgm()
         else
             state = 'On';
             listFig = cell(numberOfFigures,3);
-            for index = 1:numberOfFigures
+            nindex = 0; % number of unnumbered figure 
+            for i = 1:numberOfFigures
+                index = i - nindex;
                 objectFig = figures(index);
                 nameFig = get(objectFig,'Name');
                 idFig = get(objectFig,'Number');
@@ -193,6 +195,9 @@ function fgm()
 %                     if createMenu && ~strcmp(get(objectFig, 'MenuBar'), 'none')
 %                         uimenu(objectFig, 'Text', 'Fgm');
 %                     end
+                else
+                    figures(index) = [];
+                    nindex = nindex + 1;
                 end
             end
             listFig = listFig(~all(cellfun(@isempty,listFig),2),:); % delete empty rows
