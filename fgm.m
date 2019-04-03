@@ -223,25 +223,29 @@ function fgm()
         
     end
     function id = idSelectFigs(handles)
+        % check if the number of all selected items is equal to or less than the number of digits currently open
         if ~all(size(handles.listFigures,1)>=get(handles.list_box,'Value'))
             set(handles.list_box,'Value',1);
         end
+        % get selected figure ID
         id = cell2mat(handles.listFigures(get(handles.list_box,'Value'),1));
     end
-    function name = nameSelectFigs(handles)
+    function names = nameSelectFigs(handles)
+        % check if the number of all selected items is equal to or less than the number of digits currently open
         if ~all(size(handles.listFigures,1)>=get(handles.list_box,'Value'))
             set(handles.list_box,'Value',1);
         end
-        name = handles.listFigures(get(handles.list_box,'Value'),2);
+        % get selected figure names
+        names = handles.listFigures(get(handles.list_box,'Value'),2);
     end
-    function fig = getFigure(id)
-        figures = get(0,'Children');
-        fig = nan;
-        for num = 1:length(figures)
-            if (figures(num).Number == id)
-                fig = figures(num);
-            end
+    function figs = objSelectFigs(handles)
+        % check if the number of all selected items is equal to or less than the number of digits currently open
+        if ~all(size(handles.listFigures,1)>=get(handles.list_box,'Value'))
+            set(handles.list_box,'Value',1);
         end
+        % get selected figure objects
+        figs = handles.figures(get(handles.list_box,'Value'));
+    end
     end
 
     % -- Window callback functions
