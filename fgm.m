@@ -28,6 +28,15 @@ function fgm()
         error(['Sorry, you need to install the <a href="' link '">GUI Layout Toolbox</a>.']);
     end
     
+    % -- Updates checking
+    gitUser = 'Tetane';
+    gitRepo = 'MatlabFigureManager';
+    fgmCurrentTag = '1.0';
+    json = webread(['https://api.github.com/repos/',gitUser,'/',gitRepo,'/releases/latest']);
+    if ~all(json.tag_name==fgmCurrentTag)
+        warning(['A new version is available for FigManager. You can download it <a href="',json.html_url,'">here</a>.']);
+    end
+    
     % -- Main script
     if ~isFgmExist()
         data = loadBackup();
