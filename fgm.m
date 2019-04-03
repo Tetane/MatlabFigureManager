@@ -15,8 +15,8 @@ function fgm()
     %   - 'f2' to focus on the text field 
     %   - 'f5' to refresh the figure list
     %   - 'del' or 'backSpace' to close selected figures
-    %
-    % (c) 2018 MIT License
+    
+    % (c) 2018-2019 MIT License
     %   Created by Stephane Roussel <stephane.roussel@institutoptique.fr>
     %   Updated by Olivier Leveque <olivier.leveque@institutoptique.fr>
     
@@ -29,15 +29,15 @@ function fgm()
     end
     
     % -- Main script
-    if ~isFigManagerExist()
+    if ~isFgmExist()
         data = loadBackup();
         h = createWindow();
         createInterface(h, data);
         updateInterface(h);
     end
     
-    % -- Helper subfunctions
-    function fgmExists = isFigManagerExist()
+    % -- GUI subfunctions
+    function fgmExists = isFgmExist()
         set(0,'ShowHiddenHandles','On');
         allFigures = get(0,'Children');
         fgmExists = 0;
@@ -48,6 +48,17 @@ function fgm()
             end
         end
         set(0,'ShowHiddenHandles','Off');
+    end
+    function data = loadBackup()
+        data.dataFilePath = [fgmRoot(),filesep,'backup.mat'];
+        try
+            load(data.dataFilePath, 'selectedFormats', 'lastpath');
+        catch
+            selectedFormats = [1,1,0,1,0];
+            lastpath = cd; % current folder
+        end
+        data.selectedFormats = selectedFormats;
+        data.lastpath = lastpath;
     end
     function h = createWindow()
         screenSize = get(0,'ScreenSize');
@@ -65,17 +76,6 @@ function fgm()
             'CloseRequestFcn'   , @onCloseFgm);
 %         handles = guihandles(h);
     end
-    function data = loadBackup()
-        data.dataFilePath = [fgmRoot(),filesep,'backup.mat'];
-        try
-            load(data.dataFilePath, 'selectedFormats', 'lastpath');
-        catch
-            selectedFormats = [1,1,0,1,0];
-            lastpath = cd; % current folder
-        end
-        data.selectedFormats = selectedFormats;
-        data.lastpath = lastpath;
-    end
     function createInterface(h, data)
         handles = guidata(h);
         
@@ -89,9 +89,8 @@ function fgm()
         menu_listbox = uicontextmenu('Parent', h);
         handles.context_menu.save_button = uimenu(menu_listbox, 'Text', 'Save (Ctrl+S)', 'CallBack', @onSaveButton, 'Enable', 'Off');
         handles.context_menu.close_button = uimenu(menu_listbox, 'Text', 'Close (Del)', 'CallBack', @onCloseButton, 'Enable', 'Off');
-        handles.context_menu.focus_button = uimenu(menu_listbox, 'Text', 'Focus (F)', 'CallBack', @onFocusFigure,'Enable', 'Off');
-        handles.context_menu.rename_button = uimenu(menu_listbox, 'Text', 'Rename (F2)','CallBack', @onFocusRename, 'Enable', 'Off');
-        
+        handles.context_menu.focus_button = uimenu(menu_listbox, 'Text', 'Focus (F)', 'CallBack', @onFocusCtxtmenuButton,'Enable', 'Off');
+        handles.context_menu.rename_button = uimenu(menu_listbox, 'Text', 'Rename (F2)','CallBack', @onRenameCtxtmenuButton, 'Enable', 'Off');
         set(handles.list_box, 'UiContextMenu', menu_listbox);
         
         % Rename section
@@ -102,11 +101,11 @@ function fgm()
 
         % Fig extensions section
         hbox = uix.HBox('parent', vbox);
-                handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', data.selectedFormats(1), 'KeyPressFcn' , @onKeyPressed);
-                handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', data.selectedFormats(2), 'KeyPressFcn' , @onKeyPressed);
-                handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', data.selectedFormats(3), 'KeyPressFcn' , @onKeyPressed);
-                handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', data.selectedFormats(4), 'KeyPressFcn' , @onKeyPressed);
-                handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', data.selectedFormats(5), 'KeyPressFcn' , @onKeyPressed);
+        handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', data.selectedFormats(1), 'KeyPressFcn' , @onKeyPressed);
+        handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', data.selectedFormats(2), 'KeyPressFcn' , @onKeyPressed);
+        handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', data.selectedFormats(3), 'KeyPressFcn' , @onKeyPressed);
+        handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', data.selectedFormats(4), 'KeyPressFcn' , @onKeyPressed);
+        handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', data.selectedFormats(5), 'KeyPressFcn' , @onKeyPressed);
         set(hbox, 'widths', [-1,-1,-1,-1,-1]);
 
         % Buttons section
@@ -120,35 +119,8 @@ function fgm()
         
         handles.lastpath = data.lastpath;
         handles.dataFilePath = data.dataFilePath;
+        
         guidata(h,handles);
-    end
-    function dlgchoice = overwriteDialog(filename)
-        screenSize = get(0,'ScreenSize');
-        windowSize = [380, 10+25+25+10];
-        d = dialog('Name', 'This file already exists', 'Position', ceil([(screenSize(3:4)-windowSize)/2 + [0 100], windowSize]));
-        
-        vbox = uix.VBox('Parent', d, 'Padding', 10, 'Spacing', 0);
-            question = uicontrol('Parent', vbox, 'Style', 'text', 'String', ['Overwrite '' ' filename ' '' ?']);
-            hbox = uix.HBox('Parent', vbox);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes', 'Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes to all', 'Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No', 'Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No to all', 'Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Cancel', 'Callback', @diagCallback);
-            set(vbox, 'Heights', [25 25]);
-            
-        if question.Extent(3) > windowSize(1)
-            set(d, 'Position', ceil([(screenSize(3:4)-[question.Extent(3) + 20, windowSize(2)])/2, [question.Extent(3) + 20, windowSize(2)]]))
-        end
-        
-        dlgchoice = 'Cancel'; % Default value
-        uiwait();    
-        function diagCallback(hObject, ~)
-            dlgchoice = get(hObject, 'String');
-            uiresume();
-            delete(gcf);
-        end
-        
     end
     function updateInterface(h)
         handles = guidata(h);
@@ -166,7 +138,7 @@ function fgm()
             listFig = cell(numberOfFigures,3);
             nindex = 0; % number of unnumbered figure 
             for i = 1:numberOfFigures
-                index = i - nindex;
+                index = i - nindex; % number of numbered figure 
                 objectFig = figures(index);
                 nameFig = get(objectFig,'Name');
                 idFig = get(objectFig,'Number');
@@ -220,6 +192,36 @@ function fgm()
         
         guidata(h,handles);
     end
+
+    % -- Helper subfunctions
+    function dlgchoice = overwriteDialog(filename)
+        screenSize = get(0,'ScreenSize');
+        windowSize = [380, 10+25+25+10];
+        d = dialog('Name', 'This file already exists', 'Position', ceil([(screenSize(3:4)-windowSize)/2 + [0 100], windowSize]));
+        
+        vbox = uix.VBox('Parent', d, 'Padding', 10, 'Spacing', 0);
+            question = uicontrol('Parent', vbox, 'Style', 'text', 'String', ['Overwrite '' ' filename ' '' ?']);
+            hbox = uix.HBox('Parent', vbox);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes', 'Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes to all', 'Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No', 'Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No to all', 'Callback', @diagCallback);
+                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Cancel', 'Callback', @diagCallback);
+            set(vbox, 'Heights', [25 25]);
+            
+        if question.Extent(3) > windowSize(1)
+            set(d, 'Position', ceil([(screenSize(3:4)-[question.Extent(3) + 20, windowSize(2)])/2, [question.Extent(3) + 20, windowSize(2)]]))
+        end
+        
+        dlgchoice = 'Cancel'; % Default value
+        uiwait();    
+        function diagCallback(hObject, ~)
+            dlgchoice = get(hObject, 'String');
+            uiresume();
+            delete(gcf);
+        end
+        
+    end
     function id = idSelectFigs(handles)
         if ~all(size(handles.listFigures,1)>=get(handles.list_box,'Value'))
             set(handles.list_box,'Value',1);
@@ -242,8 +244,8 @@ function fgm()
         end
     end
 
-    % -- Callback functions
-    function onKeyPressed(~,eventdata)
+    % -- Window callback functions
+    function onKeyPressed(~, eventdata)
         if strcmp(eventdata.EventName,'KeyPress')
             key = eventdata.Key;
             tag = eventdata.Source.Tag;
@@ -263,6 +265,40 @@ function fgm()
             end
         end
     end
+    function onCloseFgm(~,~)
+        try
+            handles = guidata(gcbo);
+            selectedFormats =  [...
+                    handles.check_fig.Value,...
+                    handles.check_eps.Value,...
+                    handles.check_pdf.Value,...
+                    handles.check_svg.Value,...
+                    handles.check_png.Value];
+            lastpath = handles.lastpath;
+            save(handles.dataFilePath, 'selectedFormats', 'lastpath');
+        catch
+            warning('Sorry, we can''t save your GUI settings...');
+        end
+        delete(gcbo);
+    end
+
+    % -- Button callback functions
+    function onClickList(~,~)
+        updateInterface(gcbo);
+        handles = guidata(gcbo);
+        persistent chk; % Change to non persistent variable !
+        if ~isempty(handles.listFigures{1,1}) % Trouver une autre condition
+            if isempty(chk)
+                chk = 1;
+                pause(0.3);
+                chk = [];
+            else
+                chk = [];
+                figure(idSelectFigs(handles));
+%                 uicontrol(handles.editNames);
+            end
+        end
+    end
     function onSaveButton(~,~)
         handles = guidata(gcbo);
         idSelectedFigures = idSelectFigs(handles);
@@ -277,7 +313,7 @@ function fgm()
         formats = {'fig';'epsc';'pdf';'svg';'png'};
         ext = ext(check);
         formats = formats(check);
-%         handles.selectedFormats = formats;
+        handles.selectedFormats = formats;
         if isfield(handles,'lastpath')
             lastpath = handles.lastpath;
         else
@@ -366,47 +402,17 @@ function fgm()
         set(handles.list_box,'Value',1);
         updateInterface(gcbo);
     end
-    function onClickList(~,~)
-        updateInterface(gcbo);
-        handles = guidata(gcbo);
-        persistent chk; % Change to non persistent variable !
-        if ~isempty(handles.listFigures{1,1}) % Trouver une autre condition
-            if isempty(chk)
-                chk = 1;
-                pause(0.3);
-                chk = [];
-            else
-                chk = [];
-                figure(idSelectFigs(handles));
-%                 uicontrol(handles.editNames);
-            end
-        end
-    end
-    function onFocusFigure(~,~)
+
+    % -- Context menu callback functions
+    function onFocusCtxtmenuButton(~,~)
         handles = guidata(gcbo);
         idSelectedFigures = idSelectFigs(handles);
         for i = 1:length(idSelectedFigures)
             figure(idSelectedFigures(i));
         end
     end
-    function onFocusRename(~,~)
+    function onRenameCtxtmenuButton(~,~)
         handles = guidata(gcbo);
         uicontrol(handles.editNames);
-    end
-    function onCloseFgm(~,~)
-        try
-            handles = guidata(gcbo);
-            selectedFormats =  [...
-                    handles.check_fig.Value,...
-                    handles.check_eps.Value,...
-                    handles.check_pdf.Value,...
-                    handles.check_svg.Value,...
-                    handles.check_png.Value];
-            lastpath = handles.lastpath;
-            save(handles.dataFilePath, 'selectedFormats', 'lastpath');
-        catch
-            warning('Sorry, we can''t save your GUI settings...');
-        end
-        delete(gcbo);
     end
 end
