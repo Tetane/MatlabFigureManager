@@ -100,6 +100,7 @@ function fgm()
         handles.context_menu.close_button = uimenu(menu_listbox, 'Text', 'Close (Del)', 'CallBack', @onCloseButton, 'Enable', 'Off');
         handles.context_menu.focus_button = uimenu(menu_listbox, 'Text', 'Focus (F)', 'CallBack', @onFocusCtxtmenuButton,'Enable', 'Off');
         handles.context_menu.rename_button = uimenu(menu_listbox, 'Text', 'Rename (F2)','CallBack', @onRenameCtxtmenuButton, 'Enable', 'Off');
+        handles.context_menu.explose_button = uimenu(menu_listbox, 'Text', 'Explose','CallBack', @onExploseCtxtmenuButton, 'Enable', 'Off');
         set(handles.list_box, 'UiContextMenu', menu_listbox);
         
         % Rename section
@@ -193,6 +194,7 @@ function fgm()
         set(handles.context_menu.close_button ,'Enable',state);
         set(handles.context_menu.focus_button, 'Enable',state);
         set(handles.context_menu.rename_button, 'Enable',state);
+        set(handles.context_menu.explose_button,'Enable',state);
         
         set(handles.list_box,'String',listFig(:,3));
         
@@ -427,5 +429,7 @@ function fgm()
     function onRenameCtxtmenuButton(~,~)
         handles = guidata(gcbo);
         uicontrol(handles.editNames);
+    end
+    function onExploseCtxtmenuButton(~,~)
     end
 end
