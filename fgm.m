@@ -257,7 +257,6 @@ function fgm()
         % get selected figure objects
         figs = handles.figures(get(handles.list_box,'Value'));
     end
-    end
 
     % -- Window callback functions
     function onKeyPressed(~, eventdata)
@@ -431,5 +430,6 @@ function fgm()
         uicontrol(handles.editNames);
     end
     function onExploseCtxtmenuButton(~,~)
+        disp(1)
     end
 end
