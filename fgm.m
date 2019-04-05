@@ -430,6 +430,8 @@ function fgm()
         uicontrol(handles.editNames);
     end
     function onExploseCtxtmenuButton(~,~)
-        disp(1)
+        handles = guidata(gcbo);
+        objSelectedFigures = objSelectFigs(handles);
+        pos = get(objSelectedFigures,'Position')
     end
 end
