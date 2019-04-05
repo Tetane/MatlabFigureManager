@@ -91,40 +91,40 @@ function fgm()
         vbox = uix.VBox('Parent',h);
         
         % Fig list section
-        handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox', 'CallBack', @onClickList, 'KeyPressFcn' , @onKeyPressed);
+        handles.list_box = uicontrol('Parent',vbox,'Style','listbox','CallBack',@onClickList,'KeyPressFcn',@onKeyPressed);
         set(handles.list_box,'Max',4,'Min',0);
         
         % Fig list context menu
         menu_listbox = uicontextmenu('Parent',h);
-        handles.context_menu.save_button = uimenu(menu_listbox, 'Text', 'Save (Ctrl+S)', 'CallBack', @onSaveButton, 'Enable', 'Off');
-        handles.context_menu.close_button = uimenu(menu_listbox, 'Text', 'Close (Del)', 'CallBack', @onCloseButton, 'Enable', 'Off');
-        handles.context_menu.focus_button = uimenu(menu_listbox, 'Text', 'Focus (F)', 'CallBack', @onFocusCtxtmenuButton,'Enable', 'Off');
-        handles.context_menu.rename_button = uimenu(menu_listbox, 'Text', 'Rename (F2)','CallBack', @onRenameCtxtmenuButton, 'Enable', 'Off');
-        set(handles.list_box, 'UiContextMenu', menu_listbox);
+        handles.context_menu.save_button = uimenu(menu_listbox,'Text','Save (Ctrl+S)','CallBack',@onSaveButton,'Enable','Off');
+        handles.context_menu.close_button = uimenu(menu_listbox,'Text','Close (Del)','CallBack',@onCloseButton,'Enable','Off');
+        handles.context_menu.focus_button = uimenu(menu_listbox,'Text','Focus (F)','CallBack',@onFocusCtxtmenuButton,'Enable','Off');
+        handles.context_menu.rename_button = uimenu(menu_listbox,'Text','Rename (F2)','CallBack',@onRenameCtxtmenuButton,'Enable','Off');
+        set(handles.list_box,'UiContextMenu',menu_listbox);
         
         % Rename section
-        editNamesHbox = uix.HBox('Parent', vbox);
-        handles.editNames = uicontrol('Style', 'edit', 'Parent', editNamesHbox, 'HorizontalAlignment', 'left', 'KeyPressFcn', @onKeyPressed, 'tag', 'edit');
-        handles.rename_button = uicontrol('Style', 'pushbutton', 'Parent', editNamesHbox, 'String', 'Rename', 'CallBack', @onRenameButton, 'KeyPressFcn' , @onKeyPressed, 'Enable', 'Off');
-        set(editNamesHbox, 'widths', [-1 handles.rename_button.Extent(3) + 10]);
+        editNamesHbox = uix.HBox('Parent',vbox);
+        handles.editNames = uicontrol('Style','edit','Parent',editNamesHbox,'HorizontalAlignment','left','KeyPressFcn',@onKeyPressed,'tag','edit');
+        handles.rename_button = uicontrol('Style','pushbutton','Parent',editNamesHbox,'String','Rename','CallBack',@onRenameButton,'KeyPressFcn' , @onKeyPressed, 'Enable', 'Off');
+        set(editNamesHbox,'widths',[-1,handles.rename_button.Extent(3)+10]);
 
         % Fig extensions section
         hbox = uix.HBox('parent', vbox);
-        handles.check_fig = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.fig', 'Value', data.selectedFormats(1), 'KeyPressFcn' , @onKeyPressed);
-        handles.check_eps = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.eps', 'Value', data.selectedFormats(2), 'KeyPressFcn' , @onKeyPressed);
-        handles.check_pdf = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.pdf', 'Value', data.selectedFormats(3), 'KeyPressFcn' , @onKeyPressed);
-        handles.check_svg = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.svg', 'Value', data.selectedFormats(4), 'KeyPressFcn' , @onKeyPressed);
-        handles.check_png = uicontrol('Parent', hbox, 'Style', 'checkbox', 'String', '.png', 'Value', data.selectedFormats(5), 'KeyPressFcn' , @onKeyPressed);
-        set(hbox, 'widths', [-1,-1,-1,-1,-1]);
+        handles.check_fig = uicontrol('Parent',hbox,'Style','checkbox','String','.fig','Value',data.selectedFormats(1),'KeyPressFcn',@onKeyPressed);
+        handles.check_eps = uicontrol('Parent',hbox,'Style','checkbox','String','.eps','Value',data.selectedFormats(2),'KeyPressFcn',@onKeyPressed);
+        handles.check_pdf = uicontrol('Parent',hbox,'Style','checkbox','String','.pdf','Value',data.selectedFormats(3),'KeyPressFcn',@onKeyPressed);
+        handles.check_svg = uicontrol('Parent',hbox,'Style','checkbox','String','.svg','Value',data.selectedFormats(4),'KeyPressFcn',@onKeyPressed);
+        handles.check_png = uicontrol('Parent',hbox,'Style','checkbox','String','.png','Value',data.selectedFormats(5),'KeyPressFcn',@onKeyPressed);
+        set(hbox,'widths',[-1,-1,-1,-1,-1]);
 
         % Buttons section
-        buttonsHbox = uix.HBox('Parent', vbox);
-        handles.refresh_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Refresh (f5)', 'CallBack', @onRefreshButton, 'Tag', 'refresh_button', 'KeyPressFcn' , @onKeyPressed);
-        handles.save_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Save', 'CallBack', @onSaveButton, 'Enable', 'Off', 'KeyPressFcn' , @onKeyPressed);
+        buttonsHbox = uix.HBox('Parent',vbox);
+        handles.refresh_button = uicontrol('Style','pushbutton','Parent',buttonsHbox,'String','Refresh (f5)','CallBack',@onRefreshButton,'Tag','refresh_button','KeyPressFcn',@onKeyPressed);
+        handles.save_button = uicontrol('Style','pushbutton','Parent',buttonsHbox,'String','Save','CallBack',@onSaveButton,'Enable','Off','KeyPressFcn',@onKeyPressed);
         set(handles.save_button,'TooltipString',sprintf('If multiple figures are selected, the figure''s name will be used as the file name'));
-        handles.close_button = uicontrol('Style', 'pushbutton', 'Parent', buttonsHbox, 'String', 'Close', 'CallBack', @onCloseButton, 'Enable', 'Off', 'Tag', 'close_button', 'KeyPressFcn' , @onKeyPressed);
+        handles.close_button = uicontrol('Style','pushbutton','Parent',buttonsHbox,'String','Close','CallBack',@onCloseButton,'Enable','Off','Tag','close_button','KeyPressFcn',@onKeyPressed);
 
-        set(vbox, 'heights', [-1, 20, 25, 25]);
+        set(vbox,'heights',[-1,20,25,25]);
         
         % Save some data
         handles.lastpath = data.lastpath;
@@ -209,21 +209,21 @@ function fgm()
     % -- Helper subfunctions
     function dlgchoice = overwriteDialog(filename)
         screenSize = get(0,'ScreenSize');
-        windowSize = [380, 10+25+25+10];
-        d = dialog('Name', 'This file already exists', 'Position', ceil([(screenSize(3:4)-windowSize)/2 + [0 100], windowSize]));
+        windowSize = [380,10+25+25+10];
+        d = dialog('Name','This file already exists','Position', ceil([(screenSize(3:4)-windowSize)/2+[0,100],windowSize]));
         
-        vbox = uix.VBox('Parent', d, 'Padding', 10, 'Spacing', 0);
-            question = uicontrol('Parent', vbox, 'Style', 'text', 'String', ['Overwrite '' ' filename ' '' ?']);
-            hbox = uix.HBox('Parent', vbox);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes', 'Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Yes to all', 'Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No', 'Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'No to all', 'Callback', @diagCallback);
-                uicontrol('Parent', hbox, 'Style', 'PushButton', 'String', 'Cancel', 'Callback', @diagCallback);
-            set(vbox, 'Heights', [25 25]);
+        vbox = uix.VBox('Parent',d,'Padding',10,'Spacing',0);
+            question = uicontrol('Parent',vbox,'Style','text','String',['Overwrite ''',filename,''' ?']);
+            hbox = uix.HBox('Parent',vbox);
+                uicontrol('Parent',hbox,'Style','PushButton','String','Yes','Callback',@diagCallback);
+                uicontrol('Parent',hbox,'Style','PushButton','String','Yes to all','Callback',@diagCallback);
+                uicontrol('Parent',hbox,'Style','PushButton','String','No','Callback',@diagCallback);
+                uicontrol('Parent',hbox,'Style','PushButton','String','No to all','Callback',@diagCallback);
+                uicontrol('Parent',hbox,'Style','PushButton','String','Cancel','Callback',@diagCallback);
+            set(vbox,'Heights',[25,25]);
             
         if question.Extent(3) > windowSize(1)
-            set(d, 'Position', ceil([(screenSize(3:4)-[question.Extent(3) + 20, windowSize(2)])/2, [question.Extent(3) + 20, windowSize(2)]]))
+            set(d,'Position',ceil([(screenSize(3:4)-[question.Extent(3)+20,windowSize(2)])/2,[question.Extent(3)+20,windowSize(2)]]))
         end
         
         dlgchoice = 'Cancel'; % Default value
