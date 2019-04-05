@@ -194,7 +194,6 @@ function fgm()
         set(handles.context_menu.close_button,'Enable',state);
         set(handles.context_menu.focus_button,'Enable',state);
         set(handles.context_menu.rename_button,'Enable',state);
-        set(handles.context_menu.explose_button,'Enable',state);
         
         % Update the list of displayed figures
         set(handles.list_box,'String',listFig(:,3));
@@ -259,7 +258,6 @@ function fgm()
         end
         % get selected figure objects
         figs = handles.figures(get(handles.list_box,'Value'));
-    end
     end
 
     % -- Window callback functions
