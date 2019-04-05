@@ -25,7 +25,7 @@ function fgm()
         layoutRoot();
     catch
         link = 'https://fr.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox';
-        error(['Sorry, you need to install the <a href="' link '">GUI Layout Toolbox</a>.']);
+        error('Sorry, you need to install the <a href="%s">GUI Layout Toolbox</a>.',link);
     end
     
     % -- Updates checking
@@ -34,14 +34,14 @@ function fgm()
     fgmCurrentTag = '1.0';
     json = webread(['https://api.github.com/repos/',gitUser,'/',gitRepo,'/releases/latest']);
     if ~all(json.tag_name==fgmCurrentTag)
-        warning(['A new version is available for FigManager. You can download it <a href="',json.html_url,'">here</a>.']);
+        warning('Your are using FigManager v%s\nA new version (v%s) is available. You can download it <a href="%s">here</a>.',fgmCurrentTag,json.tag_name,json.html_url);
     end
     
     % -- Main script
     if ~isFgmExist()
         data = loadBackup();
         h = createWindow();
-        createInterface(h, data);
+        createInterface(h,data);
         updateInterface(h);
     end
     
@@ -61,17 +61,17 @@ function fgm()
     function data = loadBackup()
         data.dataFilePath = [fgmRoot(),filesep,'backup.mat'];
         try
-            load(data.dataFilePath, 'selectedFormats', 'lastpath');
+            load(data.dataFilePath,'selectedFormats','lastpath');
         catch
             selectedFormats = [1,1,0,1,0];
-            lastpath = cd; % current folder
+            lastpath = pwd; % current folder
         end
         data.selectedFormats = selectedFormats;
         data.lastpath = lastpath;
     end
     function h = createWindow()
         screenSize = get(0,'ScreenSize');
-        windowSize = [240, 400];
+        windowSize = [240,400];
         h = figure(...
             'Position'          , ceil([(screenSize(3:4)-windowSize)/2,windowSize]),...
             'MenuBar'           , 'none', ...
@@ -85,17 +85,17 @@ function fgm()
             'CloseRequestFcn'   , @onCloseFgm);
 %         handles = guihandles(h);
     end
-    function createInterface(h, data)
+    function createInterface(h,data)
         handles = guidata(h);
         
-        vbox = uix.VBox('Parent', h);
+        vbox = uix.VBox('Parent',h);
         
         % Fig list section
         handles.list_box = uicontrol('Parent', vbox, 'Style', 'listbox', 'CallBack', @onClickList, 'KeyPressFcn' , @onKeyPressed);
         set(handles.list_box,'Max',4,'Min',0);
         
         % Fig list context menu
-        menu_listbox = uicontextmenu('Parent', h);
+        menu_listbox = uicontextmenu('Parent',h);
         handles.context_menu.save_button = uimenu(menu_listbox, 'Text', 'Save (Ctrl+S)', 'CallBack', @onSaveButton, 'Enable', 'Off');
         handles.context_menu.close_button = uimenu(menu_listbox, 'Text', 'Close (Del)', 'CallBack', @onCloseButton, 'Enable', 'Off');
         handles.context_menu.focus_button = uimenu(menu_listbox, 'Text', 'Focus (F)', 'CallBack', @onFocusCtxtmenuButton,'Enable', 'Off');
@@ -126,18 +126,18 @@ function fgm()
 
         set(vbox, 'heights', [-1, 20, 25, 25]);
         
+        % Save some data
         handles.lastpath = data.lastpath;
         handles.dataFilePath = data.dataFilePath;
-        
         guidata(h,handles);
     end
     function updateInterface(h)
         handles = guidata(h);
         
-        figures = get(0,'children');
-        numberOfFigures = length(figures);
+        objFigs = get(0,'children');
+        numberOfFigures = length(objFigs);
         
-        if isempty(figures)
+        if isempty(objFigs)
             state = 'Off';
             listFig = cell(1,3);
             listFig{1,2} = '';
@@ -148,7 +148,7 @@ function fgm()
             nindex = 0; % number of unnumbered figure 
             for i = 1:numberOfFigures
                 index = i - nindex; % number of numbered figure 
-                objectFig = figures(index);
+                objectFig = objFigs(index);
                 nameFig = get(objectFig,'Name');
                 idFig = get(objectFig,'Number');
                 if ~isempty(idFig)
@@ -177,28 +177,33 @@ function fgm()
 %                         uimenu(objectFig, 'Text', 'Fgm');
 %                     end
                 else
-                    figures(index) = [];
+                    objFigs(index) = [];
                     nindex = nindex + 1;
                 end
             end
             listFig = listFig(~all(cellfun(@isempty,listFig),2),:); % delete empty rows
             [listFig, sortedxIndexes] = sortrows(listFig);
-            handles.figures = figures(sortedxIndexes);
+            handles.figures = objFigs(sortedxIndexes);
         end
         
+        % Enable or disable menu content
         set(handles.save_button,'Enable',state);
         set(handles.close_button,'Enable',state);
         set(handles.rename_button,'Enable',state);
-        set(handles.context_menu.save_button ,'Enable',state);
-        set(handles.context_menu.close_button ,'Enable',state);
-        set(handles.context_menu.focus_button, 'Enable',state);
-        set(handles.context_menu.rename_button, 'Enable',state);
+        set(handles.context_menu.save_button,'Enable',state);
+        set(handles.context_menu.close_button,'Enable',state);
+        set(handles.context_menu.focus_button,'Enable',state);
+        set(handles.context_menu.rename_button,'Enable',state);
+        set(handles.context_menu.explose_button,'Enable',state);
         
+        % Update the list of displayed figures
         set(handles.list_box,'String',listFig(:,3));
         
+        % Update
         handles.listFigures = listFig;
         set(handles.editNames,'String',strjoin(nameSelectFigs(handles),';'));
         
+        % Save
         guidata(h,handles);
     end
 
@@ -258,10 +263,10 @@ function fgm()
     end
 
     % -- Window callback functions
-    function onKeyPressed(~, eventdata)
-        if strcmp(eventdata.EventName,'KeyPress')
-            key = eventdata.Key;
-            tag = eventdata.Source.Tag;
+    function onKeyPressed(~,event)
+        if strcmp(event.EventName,'KeyPress')
+            key = event.Key;
+            tag = event.Source.Tag;
             if strcmpi(key,'f5')
                 onRefreshButton();
             elseif strcmpi(key, 'f') && ~strcmp(tag,'edit') 
@@ -273,7 +278,7 @@ function fgm()
             elseif strcmpi(key,'return') && strcmp(tag,'edit')
                 pause(0.1); % make sure handles.editNames.String is updated
                 onRenameButton();
-            elseif length(eventdata.Modifier) == 1 && strcmpi(eventdata.Modifier{1}, 'control') && strcmpi(eventdata.Key,'s')
+            elseif length(event.Modifier) == 1 && strcmpi(event.Modifier{1}, 'control') && strcmpi(event.Key,'s')
                 onSaveButton();
             end
         end
@@ -316,6 +321,8 @@ function fgm()
         handles = guidata(gcbo);
         idSelectedFigures = idSelectFigs(handles);
         nameSelectedFigures = nameSelectFigs(handles);
+        objSelectedFigures = objSelectFigs(handles);
+        numberOfSelectedFigs = length(idSelectedFigures);
         check = nonzeros([...
             handles.check_fig.Value,...
             handles.check_eps.Value*2,...
@@ -326,18 +333,17 @@ function fgm()
         formats = {'fig';'epsc';'pdf';'svg';'png'};
         ext = ext(check);
         formats = formats(check);
-        handles.selectedFormats = formats;
         if isfield(handles,'lastpath')
             lastpath = handles.lastpath;
         else
             lastpath = pwd;
         end
-        for i = 1:length(idSelectedFigures)
+        for i = 1:numberOfSelectedFigs
             if strcmp(nameSelectedFigures(i), 'Untitled')
                 nameSelectedFigures{i} = ['Figure_' num2str(idSelectedFigures(i))];
             end
         end
-        if length(idSelectedFigures)==1
+        if numberOfSelectedFigs==1
             if length(formats) > 1
                 [file,path] = uiputfile('*.*','FigManager',fullfile(lastpath,char(nameSelectedFigures(1))));
             else
@@ -354,19 +360,19 @@ function fgm()
             wb = waitbar(0,'');
             set(wb.Children.Title, 'Interpreter', 'none');
             dlgchoice = 'Yes';
-            for i = 1:length(idSelectedFigures)
+            for i = 1:numberOfSelectedFigs
                 for j = 1:length(formats)
                     extension = char(ext(j));
                     extension = extension(2:end);
-                    wbInd = sub2ind([length(formats),length(idSelectedFigures)],j,i);
+                    wbInd = sub2ind([length(formats),numberOfSelectedFigs],j,i);
                     wbText = ['Saving : ' nameSelectedFigures{i} extension];
                     fullFilePath = fullfile(path,char(nameSelectedFigures(i)));
                     
                     if ~strcmpi(dlgchoice, 'Cancel')
-                        waitbar((wbInd-1)/(length(formats)*length(idSelectedFigures)),wb,wbText);
+                        waitbar((wbInd-1)/(length(formats)*numberOfSelectedFigs),wb,wbText);
                         if isfile([fullFilePath,extension]) % if the file already exists
                             fileAlreadyExist = true;
-                            if (length(idSelectedFigures) > 1 || length(formats) > 1) && (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'No'))
+                            if (numberOfSelectedFigs > 1 || length(formats) > 1) && (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'No'))
                                 dlgchoice = overwriteDialog([fullFilePath,extension]);
                             end
                         else
@@ -374,19 +380,20 @@ function fgm()
                         end
 
                         if (strcmpi(dlgchoice, 'Yes') || strcmpi(dlgchoice, 'Yes to all')) || ~fileAlreadyExist
-                            currentFig = handles.figures(idSelectedFigures(i));
+                            currentFig = objSelectedFigures(i);
                             if strcmp(char(formats(j)),'pdf')
                                 currentFig.PaperPositionMode = 'auto';
                                 currentFig.PaperUnits = 'points';
                                 currentFig.PaperSize = [currentFig.PaperPosition(3)+1 currentFig.PaperPosition(4)+1];
                             end
                             saveas(currentFig,fullFilePath,char(formats(j)));
-                            waitbar((wbInd+1)/(length(formats)*length(idSelectedFigures)),wb,wbText);
+                            waitbar((wbInd+1)/(length(formats)*numberOfSelectedFigs),wb,wbText);
                         end
                     end
                 end
             end
             close(wb);
+            handles.selectedFormats = formats;
             handles.lastpath = path;
             guidata(gcbo, handles);
         end
