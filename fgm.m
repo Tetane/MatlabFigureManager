@@ -268,11 +268,11 @@ function fgm()
             if strcmpi(key,'f5')
                 onRefreshButton();
             elseif strcmpi(key, 'f') && ~strcmp(tag,'edit') 
-                onFocusFigure();
+                onFocusCtxtmenuButton();
             elseif (strcmpi(key,'delete') || strcmpi(key,'backspace')) && ~strcmp(tag,'edit')
                 onCloseButton();
             elseif strcmpi(key, 'f2')
-                onFocusRename();
+                onRenameCtxtmenuButton();
             elseif strcmpi(key,'return') && strcmp(tag,'edit')
                 pause(0.1); % make sure handles.editNames.String is updated
                 onRenameButton();
